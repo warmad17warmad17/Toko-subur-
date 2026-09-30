@@ -1,0 +1,6 @@
+{
+  "name": "TOKO SUBUR",
+  "description": "Aplikasi Kasir dan Manajemen Inventaris TOKO SUBUR",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
