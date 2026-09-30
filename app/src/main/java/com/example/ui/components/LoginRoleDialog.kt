@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PointOfSale
@@ -65,6 +66,7 @@ fun LoginRoleDialog(
     currentRole: UserRole,
     onLoginOwner: (password: String) -> Result<Unit>,
     onLoginCashier: () -> Unit,
+    onOpenActiveCashiers: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(if (currentRole == UserRole.PEMILIK) UserRole.PEMILIK else UserRole.KASIR) }
@@ -382,6 +384,24 @@ fun LoginRoleDialog(
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
+                        }
+
+                        if (currentRole == UserRole.PEMILIK && onOpenActiveCashiers != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    onDismiss()
+                                    onOpenActiveCashiers()
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("btn_view_active_cashiers_from_dialog"),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Devices, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Lihat Status Perangkat Kasir Aktif", fontSize = 12.sp)
+                            }
                         }
                     }
                 }

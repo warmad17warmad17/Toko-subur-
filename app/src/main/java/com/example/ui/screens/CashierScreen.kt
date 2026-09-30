@@ -217,83 +217,80 @@ fun CashierScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // User Role Chip (Pemilik vs Kasir)
-                        Surface(
-                            onClick = { viewModel.openLoginRoleDialog() },
-                            shape = RoundedCornerShape(20.dp),
-                            color = if (currentUserRole == UserRole.PEMILIK) Color(0xFFFEF3C7) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                            border = BorderStroke(
-                                1.dp,
-                                if (currentUserRole == UserRole.PEMILIK) Color(0xFFF59E0B) else MaterialTheme.colorScheme.outlineVariant
-                            ),
-                            modifier = Modifier.testTag("top_user_role_chip")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                        // TAMPILAN SALAH SATU: PEMILIK ATAU KASIR
+                        // Jika aplikasi login dengan akun pemilik maka tampilan kasir ditiadakan hanya muncul tampilan pemilik.
+                        if (currentUserRole == UserRole.PEMILIK) {
+                            Surface(
+                                onClick = { viewModel.openLoginRoleDialog() },
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color(0xFFFEF3C7),
+                                border = BorderStroke(1.dp, Color(0xFFF59E0B)),
+                                modifier = Modifier.testTag("top_user_role_chip")
                             ) {
-                                Icon(
-                                    imageVector = if (currentUserRole == UserRole.PEMILIK) Icons.Default.Shield else Icons.Default.PointOfSale,
-                                    contentDescription = null,
-                                    tint = if (currentUserRole == UserRole.PEMILIK) Color(0xFFB45309) else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = currentUserRole.label,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (currentUserRole == UserRole.PEMILIK) Color(0xFF92400E) else MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.width(6.dp))
-
-                        // Real-Time Online Active Cashiers Status Chip (Mengubah "10 HP Online" menjadi Kasir 1, Kasir 2, ... Kasir 9)
-                        val isOnlineSyncActive = isRealtimeSyncEnabled && (syncStatus == SyncStatus.SYNCED || syncStatus == SyncStatus.SYNCING || currentGoogleUser != null)
-
-                        Surface(
-                            onClick = { viewModel.openActiveCashiersDialog() },
-                            shape = RoundedCornerShape(20.dp),
-                            color = if (isOnlineSyncActive) {
-                                Color(0xFFDCFCE7)
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-                            },
-                            border = BorderStroke(
-                                1.dp,
-                                if (isOnlineSyncActive) Color(0xFF16A34A).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant
-                            ),
-                            modifier = Modifier.testTag("top_active_cashier_chip")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = if (isOnlineSyncActive) Icons.Default.CloudDone else Icons.Default.CloudSync,
-                                    contentDescription = null,
-                                    tint = if (isOnlineSyncActive) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.width(5.dp))
-                                if (isOnlineSyncActive) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(6.dp)
-                                            .clip(RoundedCornerShape(3.dp))
-                                            .background(Color(0xFF16A34A))
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Shield,
+                                        contentDescription = null,
+                                        tint = Color(0xFFB45309),
+                                        modifier = Modifier.size(15.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "👑 Pemilik",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF92400E)
+                                    )
                                 }
-                                Text(
-                                    text = activeCashierLabel,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isOnlineSyncActive) Color(0xFF166534) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.testTag("active_cashier_label_text")
-                                )
+                            }
+                        } else {
+                            // Tampilan Kasir (Hanya muncul jika login sebagai Kasir)
+                            val isOnlineSyncActive = isRealtimeSyncEnabled && (syncStatus == SyncStatus.SYNCED || syncStatus == SyncStatus.SYNCING || currentGoogleUser != null)
+                            Surface(
+                                onClick = { viewModel.openLoginRoleDialog() },
+                                shape = RoundedCornerShape(20.dp),
+                                color = if (isOnlineSyncActive) {
+                                    Color(0xFFDCFCE7)
+                                } else {
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                },
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isOnlineSyncActive) Color(0xFF16A34A).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                modifier = Modifier.testTag("top_active_cashier_chip")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = if (isOnlineSyncActive) Icons.Default.CloudDone else Icons.Default.PointOfSale,
+                                        contentDescription = null,
+                                        tint = if (isOnlineSyncActive) Color(0xFF16A34A) else MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    if (isOnlineSyncActive) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .clip(RoundedCornerShape(3.dp))
+                                                .background(Color(0xFF16A34A))
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = activeCashierLabel,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isOnlineSyncActive) Color(0xFF166534) else MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.testTag("active_cashier_label_text")
+                                    )
+                                }
                             }
                         }
 
@@ -771,6 +768,7 @@ fun CashierScreen(
             currentRole = currentUserRole,
             onLoginOwner = { password -> viewModel.loginAsOwner(password) },
             onLoginCashier = { viewModel.loginAsCashier() },
+            onOpenActiveCashiers = { viewModel.openActiveCashiersDialog() },
             onDismiss = { viewModel.dismissLoginRoleDialog() }
         )
     }
