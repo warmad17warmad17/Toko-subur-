@@ -85,6 +85,7 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tune
 import com.example.data.model.CategoryEntity
 import com.example.data.model.ProductEntity
 import com.example.data.model.TopSellingProduct
@@ -108,10 +109,12 @@ fun ProductsScreen(
     val lowStockFilterActive by viewModel.lowStockFilterActive.collectAsStateWithLifecycle()
 
     val topSellingProducts by viewModel.topSellingProductsInOneWeek.collectAsStateWithLifecycle()
+    val topSellingLimit by viewModel.topSellingLimit.collectAsStateWithLifecycle()
     val excludedPromoProducts by viewModel.excludedPromoProducts.collectAsStateWithLifecycle()
 
-    var selectedCatalogTab by remember { mutableStateOf(0) } // 0 = Semua Produk, 1 = 10 Terlaris
+    var selectedCatalogTab by remember { mutableStateOf(0) } // 0 = Semua Produk, 1 = Terlaris
     var showPromoExclusionManagerDialog by remember { mutableStateOf(false) }
+    var showEditTopSellingLimitDialog by remember { mutableStateOf(false) }
 
     var showAddEditProductDialog by remember { mutableStateOf(false) }
     var productToEdit by remember { mutableStateOf<ProductEntity?>(null) }
@@ -277,7 +280,7 @@ fun ProductsScreen(
                     }
                 }
 
-                // Tab 1: 10 Terlaris Minggu Ini
+                // Tab 1: Terlaris Minggu Ini
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -297,7 +300,7 @@ fun ProductsScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "🔥 10 Terlaris (1 Minggu)",
+                            text = "🔥 $topSellingLimit Terlaris (1 Minggu)",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (selectedCatalogTab == 1) FontWeight.Bold else FontWeight.Medium,
                             color = if (selectedCatalogTab == 1) Color(0xFF92400E) else MaterialTheme.colorScheme.onSurfaceVariant
@@ -539,13 +542,13 @@ fun ProductsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Katalog 10 Produk Terlaris",
+                                        text = "Katalog $topSellingLimit Produk Terlaris",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF92400E)
                                     )
                                     Text(
-                                        text = "Periode 1 Minggu Terakhir (7 Hari)",
+                                        text = "Periode 1 Minggu Terakhir (7 Hari) • Kuota: $topSellingLimit produk",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = Color(0xFFB45309),
                                         fontWeight = FontWeight.Medium
@@ -555,7 +558,7 @@ fun ProductsScreen(
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            // Info Pengecualian Promo
+                            // Info Pengecualian Promo & Tombol Atur Kuota
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -580,7 +583,7 @@ fun ProductsScreen(
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
                                             text = if (excludedPromoProducts.isNotEmpty())
-                                                "${excludedPromoProducts.size} Produk Promo Dikecualikan"
+                                                "${excludedPromoProducts.size} Promo Dikecualikan"
                                             else "0 Promo Dikecualikan",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
@@ -589,13 +592,35 @@ fun ProductsScreen(
                                     }
                                 }
 
-                                OutlinedButton(
-                                    onClick = { showPromoExclusionManagerDialog = true },
-                                    shape = RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                    modifier = Modifier.height(32.dp).testTag("btn_manage_promo_from_top_selling")
-                                ) {
-                                    Text("Kelola Promo", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    OutlinedButton(
+                                        onClick = { showEditTopSellingLimitDialog = true },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF92400E)),
+                                        border = BorderStroke(1.dp, Color(0xFFD97706)),
+                                        modifier = Modifier
+                                            .height(32.dp)
+                                            .testTag("btn_edit_top_selling_limit")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Tune,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(13.dp),
+                                            tint = Color(0xFFB45309)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Atur Kuota ($topSellingLimit)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = { showPromoExclusionManagerDialog = true },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp).testTag("btn_manage_promo_from_top_selling")
+                                    ) {
+                                        Text("Kelola Promo", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                                    }
                                 }
                             }
                         }
@@ -751,7 +776,7 @@ fun ProductsScreen(
         )
     }
 
-    // Promo Exclusion Dialog for 10 Terlaris
+    // Promo Exclusion Dialog for Terlaris
     if (showPromoExclusionManagerDialog) {
         PromoExclusionManagerDialog(
             excludedList = excludedPromoProducts,
@@ -763,6 +788,18 @@ fun ProductsScreen(
                 viewModel.removeExcludedPromoProduct(pId)
             },
             onDismiss = { showPromoExclusionManagerDialog = false }
+        )
+    }
+
+    // Dialog Sesuaikan Jumlah Produk Terlaris (Misal dari 10 menjadi 20)
+    if (showEditTopSellingLimitDialog) {
+        EditTopSellingLimitDialog(
+            currentLimit = topSellingLimit,
+            onSaveLimit = { newLimit ->
+                viewModel.setTopSellingLimit(newLimit)
+                showEditTopSellingLimitDialog = false
+            },
+            onDismiss = { showEditTopSellingLimitDialog = false }
         )
     }
 }
@@ -1209,7 +1246,14 @@ private fun AddEditProductDialog(
             if (product != null && product.hargaJual > 0) CurrencyFormatter.formatThousand(product.hargaJual.toLong()) else ""
         )
     }
-    var stokStr by remember { mutableStateOf(product?.stok?.toString() ?: "10") }
+
+    val isEditMode = product != null
+    val existingStock = product?.stok ?: 0
+    // Pada menu edit stok produk: jumlah stok produk yang ada akan di tambah dengan stok produk baru datang
+    // Misal stok ada 5 pcs, diinput 10 pcs -> total jadi 15 pcs!
+    var isIncomingAdditionMode by remember { mutableStateOf(isEditMode) }
+    var incomingStockStr by remember { mutableStateOf("") }
+    var manualTotalStockStr by remember { mutableStateOf(product?.stok?.toString() ?: "10") }
     var minStokAlertStr by remember { mutableStateOf(product?.minimumStokAlert?.toString() ?: "5") }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
 
@@ -1346,28 +1390,239 @@ private fun AddEditProductDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Stock & Low Stock Alert Threshold
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = stokStr,
-                        onValueChange = { stokStr = it.filter { ch -> ch.isDigit() } },
-                        label = { Text("Jumlah Stok") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f).testTag("product_stok_input"),
-                        singleLine = true
-                    )
+                // Stock Management Section
+                if (isEditMode) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Inventory,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Kelola Stok Produk",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
 
+                                Surface(
+                                    color = if (existingStock <= 5) Color(0xFFFEF3C7) else Color(0xFFDCFCE7),
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        text = "Stok Saat Ini: $existingStock pcs",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (existingStock <= 5) Color(0xFF92400E) else Color(0xFF166534),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Pilihan Mode: Tambah Stok Masuk vs Ubah Total Manual
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isIncomingAdditionMode) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                                        .clickable { isIncomingAdditionMode = true }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "+ Tambah Stok Baru",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isIncomingAdditionMode) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isIncomingAdditionMode) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (!isIncomingAdditionMode) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                                        .clickable { isIncomingAdditionMode = false }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "= Ubah Total Manual",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (!isIncomingAdditionMode) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (!isIncomingAdditionMode) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            if (isIncomingAdditionMode) {
+                                val incoming = incomingStockStr.toIntOrNull() ?: 0
+                                val computedFinalStock = existingStock + incoming
+
+                                OutlinedTextField(
+                                    value = incomingStockStr,
+                                    onValueChange = { incomingStockStr = it.filter { ch -> ch.isDigit() } },
+                                    label = { Text("Jumlah Stok Baru Datang") },
+                                    placeholder = { Text("Misal: 10 (otomatis jadi ${existingStock + 10} pcs)") },
+                                    prefix = { Text("+ ", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A)) },
+                                    suffix = { Text("pcs") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("product_incoming_stock_input"),
+                                    singleLine = true
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                // Tombol Cepat Tambah Stok Masuk (+5, +10, +20, +50, +100)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    listOf(5, 10, 20, 50, 100).forEach { addQty ->
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = MaterialTheme.colorScheme.surface,
+                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable {
+                                                    val cur = incomingStockStr.toIntOrNull() ?: 0
+                                                    incomingStockStr = (cur + addQty).toString()
+                                                }
+                                        ) {
+                                            Text(
+                                                text = "+$addQty",
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(vertical = 5.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Kartu Perhitungan Real-Time
+                                Surface(
+                                    color = if (incoming > 0) Color(0xFFECFDF5) else Color(0xFFF8FAFC),
+                                    border = BorderStroke(1.dp, if (incoming > 0) Color(0xFFA7F3D0) else Color(0xFFCBD5E1)),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        if (incoming > 0) {
+                                            Text(
+                                                text = "Perhitungan Penjumlahan Stok Otomatis:",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF047857)
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = "$existingStock pcs (stok lama) + $incoming pcs (baru datang) = $computedFinalStock pcs",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color(0xFF065F46)
+                                            )
+                                            Text(
+                                                text = "Total Stok yang disimpan: $computedFinalStock pcs",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF16A34A)
+                                            )
+                                        } else {
+                                            Text(
+                                                text = "💡 Masukkan jumlah stok produk yang baru datang. Jumlah akan otomatis ditambahkan ke stok yang sudah ada ($existingStock pcs).",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF475569)
+                                            )
+                                            Text(
+                                                text = "Total stok saat ini: $existingStock pcs (tidak ada penambahan)",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = Color(0xFF64748B)
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                OutlinedTextField(
+                                    value = manualTotalStockStr,
+                                    onValueChange = { manualTotalStockStr = it.filter { ch -> ch.isDigit() } },
+                                    label = { Text("Koreksi Total Stok Manual") },
+                                    placeholder = { Text("Contoh: 15") },
+                                    suffix = { Text("pcs") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("product_stok_input"),
+                                    singleLine = true,
+                                    supportingText = {
+                                        Text("Ubah langsung total stok jika ada penyesuaian fisik (stok opname)")
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Produk Baru: Input Stok Awal
                     OutlinedTextField(
-                        value = minStokAlertStr,
-                        onValueChange = { minStokAlertStr = it.filter { ch -> ch.isDigit() } },
-                        label = { Text("Peringatan Batas Menipis") },
+                        value = manualTotalStockStr,
+                        onValueChange = { manualTotalStockStr = it.filter { ch -> ch.isDigit() } },
+                        label = { Text("Jumlah Stok Awal") },
+                        placeholder = { Text("Contoh: 10") },
+                        suffix = { Text("pcs") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f).testTag("product_min_alert_input"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("product_stok_input"),
                         singleLine = true
                     )
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Peringatan Batas Menipis
+                OutlinedTextField(
+                    value = minStokAlertStr,
+                    onValueChange = { minStokAlertStr = it.filter { ch -> ch.isDigit() } },
+                    label = { Text("Peringatan Batas Stok Menipis") },
+                    placeholder = { Text("Contoh: 5") },
+                    suffix = { Text("pcs") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth().testTag("product_min_alert_input"),
+                    singleLine = true
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -1385,12 +1640,21 @@ private fun AddEditProductDialog(
                         onClick = {
                             val beli = CurrencyFormatter.parseAmount(hargaBeliStr)
                             val jual = CurrencyFormatter.parseAmount(hargaJualStr)
-                            val stok = stokStr.toIntOrNull() ?: 0
+                            val finalStok = if (isEditMode) {
+                                if (isIncomingAdditionMode) {
+                                    val inc = incomingStockStr.toIntOrNull() ?: 0
+                                    existingStock + inc
+                                } else {
+                                    manualTotalStockStr.toIntOrNull() ?: existingStock
+                                }
+                            } else {
+                                manualTotalStockStr.toIntOrNull() ?: 10
+                            }
                             val minAlert = minStokAlertStr.toIntOrNull() ?: 5
                             val catId = selectedCategory?.id ?: 0L
                             val catName = selectedCategory?.name ?: "Umum"
 
-                            onSave(name, catId, catName, qrCode, beli, jual, stok, minAlert)
+                            onSave(name, catId, catName, qrCode, beli, jual, finalStok, minAlert)
                         },
                         enabled = name.isNotBlank() && selectedCategory != null && qrCode.isNotBlank(),
                         modifier = Modifier.testTag("save_product_btn")
@@ -1564,6 +1828,210 @@ private fun CategoryManagementDialog(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditTopSellingLimitDialog(
+    currentLimit: Int,
+    onSaveLimit: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var limitInput by remember { mutableStateOf(currentLimit.toString()) }
+    val presets = listOf(5, 10, 15, 20, 25, 30, 50)
+    val parsed = limitInput.toIntOrNull() ?: currentLimit
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .imePadding()
+                .testTag("edit_top_selling_limit_dialog"),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFFEF3C7)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            tint = Color(0xFFD97706),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Sesuaikan Jumlah Terlaris",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Katalog Produk Terlaris 1 Minggu",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "Tentukan berapa banyak produk terlaris dalam 1 minggu yang ingin ditampilkan pada katalog (misal dari 10 menjadi 20 produk terlaris):",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Pilihan Cepat (Presets)
+                Text(
+                    text = "Pilihan Cepat:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    presets.take(4).forEach { p ->
+                        val isSelected = parsed == p
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { limitInput = p.toString() },
+                            color = if (isSelected) Color(0xFFF59E0B) else MaterialTheme.colorScheme.surfaceVariant,
+                            border = if (isSelected) BorderStroke(1.dp, Color(0xFFD97706)) else null
+                        ) {
+                            Text(
+                                text = "$p",
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 13.sp,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    presets.drop(4).forEach { p ->
+                        val isSelected = parsed == p
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { limitInput = p.toString() },
+                            color = if (isSelected) Color(0xFFF59E0B) else MaterialTheme.colorScheme.surfaceVariant,
+                            border = if (isSelected) BorderStroke(1.dp, Color(0xFFD97706)) else null
+                        ) {
+                            Text(
+                                text = "$p",
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 13.sp,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Custom Input Field
+                OutlinedTextField(
+                    value = limitInput,
+                    onValueChange = { limitInput = it.filter { ch -> ch.isDigit() } },
+                    label = { Text("Jumlah Produk Terlaris Ditampilkan") },
+                    placeholder = { Text("Contoh: 20") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("custom_top_selling_limit_input"),
+                    singleLine = true,
+                    supportingText = {
+                        Text("Bisa diatur dari 1 sampai 100 produk terlaris")
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Live Preview Card
+                val validNumber = (limitInput.toIntOrNull() ?: currentLimit).coerceIn(1, 100)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFEFF6FF),
+                    border = BorderStroke(1.dp, Color(0xFFBFDBFE)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.LocalFireDepartment,
+                            contentDescription = null,
+                            tint = Color(0xFF2563EB),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Katalog akan menampilkan peringkat #1 sampai #$validNumber produk terlaris.",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E40AF)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Batal")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val newLimit = (limitInput.toIntOrNull() ?: currentLimit).coerceIn(1, 100)
+                            onSaveLimit(newLimit)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
+                        modifier = Modifier.testTag("save_top_selling_limit_btn")
+                    ) {
+                        Text("Terapkan ($validNumber)", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }

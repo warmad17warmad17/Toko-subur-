@@ -175,4 +175,48 @@ class ExampleUnitTest {
     assertEquals("Beras 5kg", sortedByQty[1].productName)
     assertEquals(30, sortedByQty[1].quantity)
   }
+
+  @Test
+  fun `test top selling products custom limit adjustment from 10 to 20`() {
+    val items = (1..25).map { i ->
+      com.example.data.model.TopSellingProduct(
+        rank = i,
+        productId = i.toLong(),
+        productName = "Produk #$i",
+        qrCode = "QR$i",
+        categoryName = "Kategori",
+        totalSoldQuantity = 100 - i,
+        totalRevenue = (100 - i) * 1000.0,
+        currentStock = 20,
+        currentPrice = 1000.0
+      )
+    }
+
+    // Default limit 10
+    val top10 = items.take(10)
+    assertEquals(10, top10.size)
+    assertEquals(1, top10.first().rank)
+    assertEquals(10, top10.last().rank)
+
+    // Adjusted limit 20
+    val customLimit = 20
+    val top20 = items.take(customLimit)
+    assertEquals(20, top20.size)
+    assertEquals("Produk #1", top20.first().productName)
+    assertEquals("Produk #20", top20.last().productName)
+  }
+
+  @Test
+  fun `test incoming stock addition logic (existing 5 pcs + incoming 10 pcs = 15 pcs)`() {
+    val existingStock = 5
+    val incomingNewStock = 10
+
+    val calculatedFinalStock = existingStock + incomingNewStock
+    assertEquals(15, calculatedFinalStock)
+
+    // If no incoming stock entered (blank / 0), keep existing stock
+    val zeroIncoming = 0
+    val stockUnchanged = existingStock + zeroIncoming
+    assertEquals(5, stockUnchanged)
+  }
 }

@@ -225,14 +225,28 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // -------------------------------------------------------------
-    // KATALOG 10 PRODUK TERLARIS DALAM SATU MINGGU (7 HARI TERAKHIR)
+    // KATALOG PRODUK TERLARIS DALAM SATU MINGGU (7 HARI TERAKHIR)
     // -------------------------------------------------------------
+    private val appPrefs: android.content.SharedPreferences =
+        application.getSharedPreferences("toko_app_prefs", Context.MODE_PRIVATE)
+
+    private val _topSellingLimit = MutableStateFlow(appPrefs.getInt("top_selling_limit", 10))
+    val topSellingLimit: StateFlow<Int> = _topSellingLimit.asStateFlow()
+
+    fun setTopSellingLimit(limit: Int) {
+        val safeLimit = limit.coerceIn(1, 100)
+        _topSellingLimit.value = safeLimit
+        appPrefs.edit().putInt("top_selling_limit", safeLimit).apply()
+        emitMessage("Katalog menampilkan $safeLimit produk terlaris dalam 1 minggu.")
+    }
+
     val topSellingProductsInOneWeek: StateFlow<List<TopSellingProduct>> = combine(
         allTransactions,
         repository.allTransactionItems,
         allProducts,
-        excludedPromoProducts
-    ) { transactions, allItems, products, excludedList ->
+        excludedPromoProducts,
+        _topSellingLimit
+    ) { transactions, allItems, products, excludedList, limit ->
         val oneWeekAgo = DateFormatter.getStartOfLast7Days()
         val weekTransactions = transactions.filter { it.timestamp >= oneWeekAgo }
         if (weekTransactions.isEmpty() || allItems.isEmpty()) {
@@ -269,7 +283,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             val pId = prod?.id ?: first.productId
             val pName = prod?.name ?: first.productName
 
-            // Pengecualian promo toko: produk promo TIDAK termasuk 10 terlaris
+            // Pengecualian promo toko: produk promo TIDAK termasuk terlaris
             if (pId in excludedProductIds || pName.trim().lowercase() in excludedNames) {
                 continue
             }
@@ -298,7 +312,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
         summaryList.sortedWith(
             compareByDescending<TopSellingProduct> { it.totalSoldQuantity }
                 .thenByDescending { it.totalRevenue }
-        ).take(10).mapIndexed { index, item ->
+        ).take(limit).mapIndexed { index, item ->
             item.copy(rank = index + 1)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
