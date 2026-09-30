@@ -6,9 +6,12 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +46,8 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
@@ -68,6 +73,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.data.auth.UserRole
 import com.example.ui.components.LoginRoleDialog
 import com.example.ui.components.ActiveCashiersDialog
@@ -168,6 +174,7 @@ fun SettingsBackupScreen(
     var passwordChangeSuccess by remember { mutableStateOf<String?>(null) }
     var showOldPassword by remember { mutableStateOf(false) }
     var showNewPassword by remember { mutableStateOf(false) }
+    var isChangePasswordActive by remember { mutableStateOf(false) }
 
     var showSoundPickerDialog by remember { mutableStateOf(false) }
 
@@ -291,7 +298,10 @@ fun SettingsBackupScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(38.dp)
@@ -308,29 +318,41 @@ fun SettingsBackupScreen(
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
                                     text = "Akun & Hak Akses Peran",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "Peran Aktif: ${currentUserRole.label}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (currentUserRole == UserRole.PEMILIK) Color(0xFFD97706) else MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
 
+                        Spacer(modifier = Modifier.width(8.dp))
+
                         Button(
                             onClick = { viewModel.openLoginRoleDialog() },
                             shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                             modifier = Modifier.testTag("btn_switch_role_settings")
                         ) {
-                            Text("Ganti Akun", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "Ganti Akun",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
                         }
                     }
 
@@ -351,7 +373,10 @@ fun SettingsBackupScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
                                     Icon(
                                         imageVector = Icons.Default.Devices,
                                         contentDescription = null,
@@ -360,23 +385,30 @@ fun SettingsBackupScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Perangkat Kasir Aktif (Real-Time)",
+                                        text = "Perangkat Kasir Aktif",
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF14532D)
+                                        color = Color(0xFF14532D),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
+                                Spacer(modifier = Modifier.width(8.dp))
+
                                 Surface(
                                     color = Color(0xFFDCFCE7),
-                                    shape = RoundedCornerShape(6.dp)
+                                    shape = RoundedCornerShape(6.dp),
+                                    border = BorderStroke(1.dp, Color(0xFF16A34A).copy(alpha = 0.3f))
                                 ) {
                                     Text(
-                                        text = "🟢 $activeCashierCount Kasir Online",
+                                        text = "🟢 $activeCashierCount Online",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF166534),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                     )
                                 }
                             }
@@ -402,180 +434,260 @@ fun SettingsBackupScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Fitur Khusus Akun Pemilik: Ubah Kata Sandi Pemilik
+                    // Fitur Khusus Akun Pemilik: Ubah Kata Sandi Pemilik (Hanya aktif ketika diklik)
                     if (currentUserRole == UserRole.PEMILIK) {
                         Surface(
                             color = Color(0xFFFFFBEB),
                             shape = RoundedCornerShape(12.dp),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFDE68A)),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("change_owner_password_card")
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lock,
-                                        contentDescription = null,
-                                        tint = Color(0xFFD97706),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Ubah Kata Sandi Pemilik",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF92400E)
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Kata sandi default: 1234567890. Anda dapat mengubah kata sandi baru untuk mengamankan hak akses pembatalan transaksi toko.",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFF78350F),
-                                    lineHeight = 15.sp
-                                )
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                OutlinedTextField(
-                                    value = oldPasswordInput,
-                                    onValueChange = {
-                                        oldPasswordInput = it
-                                        passwordChangeError = null
-                                        passwordChangeSuccess = null
-                                    },
-                                    label = { Text("Kata Sandi Lama", fontSize = 12.sp) },
-                                    placeholder = { Text("1234567890", fontSize = 12.sp) },
-                                    singleLine = true,
-                                    visualTransformation = if (showOldPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                                    trailingIcon = {
-                                        IconButton(onClick = { showOldPassword = !showOldPassword }) {
-                                            Icon(
-                                                imageVector = if (showOldPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .testTag("input_old_owner_password"),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                OutlinedTextField(
-                                    value = newPasswordInput,
-                                    onValueChange = {
-                                        newPasswordInput = it
-                                        passwordChangeError = null
-                                        passwordChangeSuccess = null
-                                    },
-                                    label = { Text("Kata Sandi Baru", fontSize = 12.sp) },
-                                    placeholder = { Text("Minimal 4 karakter", fontSize = 12.sp) },
-                                    singleLine = true,
-                                    visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                                    trailingIcon = {
-                                        IconButton(onClick = { showNewPassword = !showNewPassword }) {
-                                            Icon(
-                                                imageVector = if (showNewPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .testTag("input_new_owner_password"),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                OutlinedTextField(
-                                    value = confirmPasswordInput,
-                                    onValueChange = {
-                                        confirmPasswordInput = it
-                                        passwordChangeError = null
-                                        passwordChangeSuccess = null
-                                    },
-                                    label = { Text("Konfirmasi Kata Sandi Baru", fontSize = 12.sp) },
-                                    placeholder = { Text("Ulangi kata sandi baru", fontSize = 12.sp) },
-                                    singleLine = true,
-                                    visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .testTag("input_confirm_owner_password"),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-
-                                if (passwordChangeError != null) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = passwordChangeError ?: "",
-                                        color = MaterialTheme.colorScheme.error,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-
-                                if (passwordChangeSuccess != null) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = passwordChangeSuccess ?: "",
-                                        color = Color(0xFF16A34A),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    OutlinedButton(
-                                        onClick = {
-                                            viewModel.resetOwnerPasswordToDefault()
-                                            oldPasswordInput = ""
-                                            newPasswordInput = ""
-                                            confirmPasswordInput = ""
-                                            passwordChangeError = null
-                                            passwordChangeSuccess = "Kata sandi pemilik dikembalikan ke default: 1234567890"
-                                        },
-                                        shape = RoundedCornerShape(8.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text("Reset Bawaan", fontSize = 11.sp)
-                                    }
-
-                                    Button(
-                                        onClick = {
-                                            if (newPasswordInput != confirmPasswordInput) {
-                                                passwordChangeError = "Konfirmasi kata sandi tidak cocok!"
-                                                return@Button
-                                            }
-                                            val res = viewModel.changeOwnerPassword(oldPasswordInput, newPasswordInput)
-                                            if (res.isSuccess) {
-                                                passwordChangeSuccess = "Kata sandi pemilik berhasil diperbarui!"
-                                                passwordChangeError = null
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            isChangePasswordActive = !isChangePasswordActive
+                                            if (!isChangePasswordActive) {
                                                 oldPasswordInput = ""
                                                 newPasswordInput = ""
                                                 confirmPasswordInput = ""
-                                            } else {
-                                                passwordChangeError = res.exceptionOrNull()?.message ?: "Gagal mengubah kata sandi"
+                                                passwordChangeError = null
+                                                passwordChangeSuccess = null
+                                            }
+                                        },
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = null,
+                                            tint = Color(0xFFD97706),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                text = "Ubah Kata Sandi Pemilik",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                color = Color(0xFF92400E),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                text = if (isChangePasswordActive) "Ketuk untuk menutup formulir" else "Ketuk untuk membuka formulir",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF78350F),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Surface(
+                                        onClick = {
+                                            isChangePasswordActive = !isChangePasswordActive
+                                            if (!isChangePasswordActive) {
+                                                oldPasswordInput = ""
+                                                newPasswordInput = ""
+                                                confirmPasswordInput = ""
+                                                passwordChangeError = null
                                                 passwordChangeSuccess = null
                                             }
                                         },
                                         shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
-                                        modifier = Modifier
-                                            .weight(1.3f)
-                                            .testTag("btn_save_owner_password")
+                                        color = if (isChangePasswordActive) Color(0xFFD97706) else Color(0xFFFEF3C7),
+                                        border = BorderStroke(1.dp, Color(0xFFD97706).copy(alpha = 0.5f)),
+                                        modifier = Modifier.testTag("btn_toggle_change_password")
                                     ) {
-                                        Text("Simpan Sandi Baru", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = if (isChangePasswordActive) "Tutup" else "Ubah Sandi",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isChangePasswordActive) Color.White else Color(0xFF92400E),
+                                                maxLines = 1,
+                                                softWrap = false
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Icon(
+                                                imageVector = if (isChangePasswordActive) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                                contentDescription = null,
+                                                tint = if (isChangePasswordActive) Color.White else Color(0xFF92400E),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Seluruh teks menu dan input hanya aktif ketika menu ubah kata sandi diaktifkan
+                                AnimatedVisibility(visible = isChangePasswordActive) {
+                                    Column(modifier = Modifier.padding(top = 10.dp)) {
+                                        HorizontalDivider(color = Color(0xFFFDE68A))
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        Text(
+                                            text = "Kata sandi default: 1234567890. Anda dapat mengubah kata sandi baru untuk mengamankan hak akses pembatalan transaksi toko.",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF78350F),
+                                            lineHeight = 15.sp
+                                        )
+
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        OutlinedTextField(
+                                            value = oldPasswordInput,
+                                            onValueChange = {
+                                                oldPasswordInput = it
+                                                passwordChangeError = null
+                                                passwordChangeSuccess = null
+                                            },
+                                            label = { Text("Kata Sandi Lama", fontSize = 12.sp) },
+                                            placeholder = { Text("1234567890", fontSize = 12.sp) },
+                                            singleLine = true,
+                                            visualTransformation = if (showOldPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                                            trailingIcon = {
+                                                IconButton(onClick = { showOldPassword = !showOldPassword }) {
+                                                    Icon(
+                                                        imageVector = if (showOldPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .testTag("input_old_owner_password"),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        OutlinedTextField(
+                                            value = newPasswordInput,
+                                            onValueChange = {
+                                                newPasswordInput = it
+                                                passwordChangeError = null
+                                                passwordChangeSuccess = null
+                                            },
+                                            label = { Text("Kata Sandi Baru", fontSize = 12.sp) },
+                                            placeholder = { Text("Minimal 4 karakter", fontSize = 12.sp) },
+                                            singleLine = true,
+                                            visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                                            trailingIcon = {
+                                                IconButton(onClick = { showNewPassword = !showNewPassword }) {
+                                                    Icon(
+                                                        imageVector = if (showNewPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .testTag("input_new_owner_password"),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        OutlinedTextField(
+                                            value = confirmPasswordInput,
+                                            onValueChange = {
+                                                confirmPasswordInput = it
+                                                passwordChangeError = null
+                                                passwordChangeSuccess = null
+                                            },
+                                            label = { Text("Konfirmasi Kata Sandi Baru", fontSize = 12.sp) },
+                                            placeholder = { Text("Ulangi kata sandi baru", fontSize = 12.sp) },
+                                            singleLine = true,
+                                            visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .testTag("input_confirm_owner_password"),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+
+                                        if (passwordChangeError != null) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(
+                                                text = passwordChangeError ?: "",
+                                                color = MaterialTheme.colorScheme.error,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+
+                                        if (passwordChangeSuccess != null) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(
+                                                text = passwordChangeSuccess ?: "",
+                                                color = Color(0xFF16A34A),
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            OutlinedButton(
+                                                onClick = {
+                                                    viewModel.resetOwnerPasswordToDefault()
+                                                    oldPasswordInput = ""
+                                                    newPasswordInput = ""
+                                                    confirmPasswordInput = ""
+                                                    passwordChangeError = null
+                                                    passwordChangeSuccess = "Kata sandi pemilik dikembalikan ke default: 1234567890"
+                                                },
+                                                shape = RoundedCornerShape(8.dp),
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text("Reset Bawaan", fontSize = 11.sp)
+                                            }
+
+                                            Button(
+                                                onClick = {
+                                                    if (newPasswordInput != confirmPasswordInput) {
+                                                        passwordChangeError = "Konfirmasi kata sandi tidak cocok!"
+                                                        return@Button
+                                                    }
+                                                    val res = viewModel.changeOwnerPassword(oldPasswordInput, newPasswordInput)
+                                                    if (res.isSuccess) {
+                                                        passwordChangeSuccess = "Kata sandi pemilik berhasil diperbarui!"
+                                                        passwordChangeError = null
+                                                        oldPasswordInput = ""
+                                                        newPasswordInput = ""
+                                                        confirmPasswordInput = ""
+                                                    } else {
+                                                        passwordChangeError = res.exceptionOrNull()?.message ?: "Gagal mengubah kata sandi"
+                                                        passwordChangeSuccess = null
+                                                    }
+                                                },
+                                                shape = RoundedCornerShape(8.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
+                                                modifier = Modifier
+                                                    .weight(1.3f)
+                                                    .testTag("btn_save_owner_password")
+                                            ) {
+                                                Text("Simpan Sandi Baru", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -634,7 +746,10 @@ fun SettingsBackupScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(38.dp)
@@ -651,27 +766,38 @@ fun SettingsBackupScreen(
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Firebase Realtime Online (10 HP)",
+                                    text = "Firebase Realtime (Multi-HP)",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = "🟢 Terhubung otomatis & sinkron data real-time",
+                                    text = "🟢 Terhubung & sinkron otomatis",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF166534),
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         TextButton(
                             onClick = { showGoogleSyncDialog = true },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                         ) {
-                            Text("Pengaturan", fontSize = 12.sp)
+                            Text(
+                                text = "Pengaturan",
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                softWrap = false
+                            )
                         }
                     }
 

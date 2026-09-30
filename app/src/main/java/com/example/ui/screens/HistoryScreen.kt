@@ -92,16 +92,16 @@ fun HistoryScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header Bar - Tepat di paling atas layar dengan jarak rapat
+            // Header Bar - Tepat di paling atas layar dengan jarak sangat rapat
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 4.dp)
                 ) {
-                    // Teks Database Riwayat Penjualan di paling atas layar
+                    // Teks Database Riwayat Penjualan digeser ke paling atas
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -111,29 +111,30 @@ fun HistoryScreen(
                             text = "Database Riwayat Penjualan",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.testTag("history_screen_title")
                         )
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             // Badge Hak Akses (Pemilik vs Kasir)
                             Surface(
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(6.dp),
                                 color = if (currentUserRole == UserRole.PEMILIK) Color(0xFFFEF3C7) else MaterialTheme.colorScheme.surfaceVariant,
                                 border = BorderStroke(1.dp, if (currentUserRole == UserRole.PEMILIK) Color(0xFFF59E0B) else MaterialTheme.colorScheme.outlineVariant)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = if (currentUserRole == UserRole.PEMILIK) Icons.Default.Shield else Icons.Default.PointOfSale,
                                         contentDescription = null,
                                         tint = if (currentUserRole == UserRole.PEMILIK) Color(0xFFB45309) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(13.dp)
+                                        modifier = Modifier.size(12.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
                                     Text(
-                                        text = if (currentUserRole == UserRole.PEMILIK) "👑 Pemilik (Bisa Hapus)" else "🛒 Kasir",
+                                        text = if (currentUserRole == UserRole.PEMILIK) "👑 Pemilik" else "🛒 Kasir",
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (currentUserRole == UserRole.PEMILIK) Color(0xFF92400E) else MaterialTheme.colorScheme.onSurfaceVariant
@@ -141,31 +142,31 @@ fun HistoryScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
 
                             Surface(
                                 color = MaterialTheme.colorScheme.primaryContainer,
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
                                     text = "${filteredTransactions.size} Transaksi",
-                                    fontSize = 11.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
                     }
 
-                    // Jarak rapat antara Database Riwayat Penjualan dan menu pencarian invoice
-                    Spacer(modifier = Modifier.height(3.dp))
+                    // Jarak rapat antara teks Database Riwayat Penjualan dan menu pencarian invoice
+                    Spacer(modifier = Modifier.height(2.dp))
 
                     // Menu pencarian invoice yang ramping & rapat agar muat lebih banyak invoice
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(38.dp),
+                            .height(36.dp),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)

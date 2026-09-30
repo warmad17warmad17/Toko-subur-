@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -455,10 +456,13 @@ fun FinancialReportScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(38.dp)
+                                        .size(36.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center
@@ -467,34 +471,43 @@ fun FinancialReportScreen(
                                         imageVector = Icons.Default.CalendarMonth,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "Laporan Rinci 7 Hari ke Belakang",
+                                        text = "Laporan 7 Hari Terakhir",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = "Rincian omzet, HPP, laba & kas per hari",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
 
+                            Spacer(modifier = Modifier.width(10.dp))
+
                             Surface(
                                 color = Color(0xFFDCFCE7),
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, Color(0xFF16A34A).copy(alpha = 0.4f))
                             ) {
                                 Text(
                                     text = "7 Hari Terakhir",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF166534),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
                                 )
                             }
                         }
@@ -511,34 +524,65 @@ fun FinancialReportScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
-                                    Text("Total Omzet 7 Hari", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        CurrencyFormatter.formatRupiah(totalOmzet7Days),
+                                        text = "Total Omzet 7 Hari",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = CurrencyFormatter.formatRupiah(totalOmzet7Days),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1
                                     )
                                 }
-                                Column {
-                                    Text("Rata-rata/Hari", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
                                     Text(
-                                        CurrencyFormatter.formatRupiah(avgOmzetPerDay),
+                                        text = "Rata-rata / Hari",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = CurrencyFormatter.formatRupiah(avgOmzetPerDay),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0369A1)
+                                        color = Color(0xFF0369A1),
+                                        maxLines = 1
                                     )
                                 }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("Laba Bersih 7 Hari", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.End
+                                ) {
                                     Text(
-                                        CurrencyFormatter.formatRupiah(totalLabaBersih7Days),
+                                        text = "Laba Bersih 7 Hari",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = CurrencyFormatter.formatRupiah(totalLabaBersih7Days),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = if (totalLabaBersih7Days >= 0) Color(0xFF166534) else Color(0xFFDC2626)
+                                        color = if (totalLabaBersih7Days >= 0) Color(0xFF166534) else Color(0xFFDC2626),
+                                        maxLines = 1
                                     )
                                 }
                             }
@@ -610,10 +654,13 @@ fun FinancialReportScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(38.dp)
+                                        .size(36.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(Color(0xFFEEF2FF)),
                                     contentAlignment = Alignment.Center
@@ -622,23 +669,29 @@ fun FinancialReportScreen(
                                         imageVector = Icons.Default.CalendarMonth,
                                         contentDescription = null,
                                         tint = Color(0xFF4F46E5),
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Text(
-                                        text = "Laporan Mingguan Bulan Ini",
+                                        text = "Laporan Mingguan",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = "Rincian keuangan pada setiap minggunya",
+                                        text = "Rincian keuangan per minggu di bulan ini",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
+
+                            Spacer(modifier = Modifier.width(10.dp))
 
                             Surface(
                                 color = Color(0xFFEEF2FF),
@@ -650,7 +703,9 @@ fun FinancialReportScreen(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4338CA),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
                                 )
                             }
                         }
@@ -1092,7 +1147,10 @@ fun DailyReportCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
                     Surface(
                         color = if (summary.dayOffset == 0) MaterialTheme.colorScheme.primary else Color(0xFFE2E8F0),
                         shape = RoundedCornerShape(6.dp)
@@ -1102,6 +1160,8 @@ fun DailyReportCard(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (summary.dayOffset == 0) Color.White else Color(0xFF1E293B),
+                            maxLines = 1,
+                            softWrap = false,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
@@ -1110,7 +1170,9 @@ fun DailyReportCard(
                         text = summary.formattedDate,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -1145,42 +1207,47 @@ fun DailyReportCard(
                     .fillMaxWidth()
                     .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
                     .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                     Text(
                         CurrencyFormatter.formatRupiah(summary.totalHpp),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF92400E)
+                        color = Color(0xFF92400E),
+                        maxLines = 1
                     )
                 }
-                Column {
-                    Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                     Text(
                         CurrencyFormatter.formatRupiah(summary.labaKotor),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0369A1)
+                        color = Color(0xFF0369A1),
+                        maxLines = 1
                     )
                 }
-                Column {
-                    Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                     Text(
                         CurrencyFormatter.formatRupiah(summary.totalPengeluaran),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDC2626)
+                        color = Color(0xFFDC2626),
+                        maxLines = 1
                     )
                 }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B))
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                     Text(
                         CurrencyFormatter.formatRupiah(summary.labaBersih),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = if (summary.labaBersih >= 0) Color(0xFF16A34A) else Color(0xFFDC2626)
+                        color = if (summary.labaBersih >= 0) Color(0xFF166534) else Color(0xFFDC2626),
+                        maxLines = 1
                     )
                 }
             }
