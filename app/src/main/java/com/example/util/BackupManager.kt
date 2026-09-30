@@ -1,6 +1,7 @@
 package com.example.util
 
 import com.example.data.model.CategoryEntity
+import com.example.data.model.ExcludedPromoProductEntity
 import com.example.data.model.ExpenseEntity
 import com.example.data.model.ProductEntity
 import com.example.data.model.StoreSettingsEntity
@@ -15,7 +16,8 @@ data class BackupData(
     val products: List<ProductEntity>,
     val transactions: List<TransactionEntity>,
     val transactionItems: List<TransactionItemEntity>,
-    val expenses: List<ExpenseEntity>
+    val expenses: List<ExpenseEntity>,
+    val excludedPromoProducts: List<ExcludedPromoProductEntity> = emptyList()
 )
 
 object BackupManager {
@@ -26,7 +28,8 @@ object BackupManager {
         products: List<ProductEntity>,
         transactions: List<TransactionEntity>,
         transactionItems: List<TransactionItemEntity>,
-        expenses: List<ExpenseEntity>
+        expenses: List<ExpenseEntity>,
+        excludedPromoProducts: List<ExcludedPromoProductEntity> = emptyList()
     ): String {
         val root = JSONObject()
         root.put("app", "TOKO MAKMUR")
@@ -41,6 +44,7 @@ object BackupManager {
             put("receiptFooter", settings.receiptFooter)
             put("initialCashCapital", settings.initialCashCapital)
             put("quickNominals", settings.quickNominals)
+            put("topSellingLimit", settings.topSellingLimit)
         }
         root.put("settings", settingsObj)
 
@@ -123,6 +127,19 @@ object BackupManager {
             expensesArray.put(expObj)
         }
         root.put("expenses", expensesArray)
+
+        // Excluded Promo Products for Top 10 Best Sellers
+        val excludedArray = JSONArray()
+        for (item in excludedPromoProducts) {
+            val exObj = JSONObject().apply {
+                put("productId", item.productId)
+                put("productName", item.productName)
+                put("reason", item.reason)
+                put("excludedAt", item.excludedAt)
+            }
+            excludedArray.put(exObj)
+        }
+        root.put("excludedPromoProducts", excludedArray)
 
         return root.toString(2)
     }
@@ -238,13 +255,30 @@ object BackupManager {
             }
         }
 
+        val excludedPromoProducts = mutableListOf<ExcludedPromoProductEntity>()
+        if (root.has("excludedPromoProducts")) {
+            val exArray = root.getJSONArray("excludedPromoProducts")
+            for (i in 0 until exArray.length()) {
+                val obj = exArray.getJSONObject(i)
+                excludedPromoProducts.add(
+                    ExcludedPromoProductEntity(
+                        productId = obj.optLong("productId", 0L),
+                        productName = obj.optString("productName", ""),
+                        reason = obj.optString("reason", "Sedang Promo Toko"),
+                        excludedAt = obj.optLong("excludedAt", System.currentTimeMillis())
+                    )
+                )
+            }
+        }
+
         return BackupData(
             storeSettings = settings,
             categories = categories,
             products = products,
             transactions = transactions,
             transactionItems = items,
-            expenses = expenses
+            expenses = expenses,
+            excludedPromoProducts = excludedPromoProducts
         )
     }
 }

@@ -52,6 +52,8 @@ import com.example.data.model.TransactionItemEntity
 import com.example.util.CurrencyFormatter
 import com.example.util.DateFormatter
 import com.example.util.PrintHelper
+import com.example.util.TransactionItemHelper
+import androidx.compose.runtime.remember
 
 @Composable
 fun ReceiptDialog(
@@ -62,6 +64,9 @@ fun ReceiptDialog(
     onDeleteTransaction: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val displayItems = remember(items, transaction.totalAmount) {
+        TransactionItemHelper.deduplicateItems(items, transaction.totalAmount)
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -177,7 +182,7 @@ fun ReceiptDialog(
                         DashedDivider()
 
                         // Line Items
-                        for (item in items) {
+                        for (item in displayItems) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -265,7 +270,7 @@ fun ReceiptDialog(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            PrintHelper.printReceipt(context, settings, transaction, items)
+                            PrintHelper.printReceipt(context, settings, transaction, displayItems)
                         },
                         modifier = Modifier
                             .weight(1f)
@@ -278,7 +283,7 @@ fun ReceiptDialog(
 
                     OutlinedButton(
                         onClick = {
-                            PrintHelper.shareReceipt(context, settings, transaction, items)
+                            PrintHelper.shareReceipt(context, settings, transaction, displayItems)
                         },
                         modifier = Modifier
                             .weight(1f)

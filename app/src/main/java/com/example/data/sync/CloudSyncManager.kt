@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.example.data.auth.CashierDeviceInfo
+import com.example.util.TransactionItemHelper
 
 enum class SyncStatus {
     OFFLINE,
@@ -442,7 +443,9 @@ class CloudSyncManager(
                                         )
                                     }
                                     if (itemsList.isNotEmpty()) {
-                                        transactionDao.insertTransactionItems(itemsList)
+                                        val cleanItems = TransactionItemHelper.deduplicateItems(itemsList, total)
+                                        transactionDao.deleteTransactionItemsByTransactionId(id)
+                                        transactionDao.insertTransactionItems(cleanItems)
                                     }
                                 }
                             } catch (e: Exception) {
@@ -759,10 +762,13 @@ class CloudSyncManager(
         scope.launch {
             try {
                 val db = getDatabase() ?: return@launch
+                val cleanItems = TransactionItemHelper.deduplicateItems(items, tx.totalAmount)
 
-                val itemsMap = items.associate { item ->
-                    item.id.toString() to mapOf(
-                        "id" to item.id,
+                val itemsMap = cleanItems.mapIndexed { index, item ->
+                    val stableId = if (item.id > 0) item.id else (index + 1).toLong()
+                    val itemKey = "item_${item.productId}_$stableId"
+                    itemKey to mapOf(
+                        "id" to stableId,
                         "transactionId" to tx.id,
                         "productId" to item.productId,
                         "productName" to item.productName,
@@ -772,7 +778,7 @@ class CloudSyncManager(
                         "unitCost" to item.unitCost,
                         "subtotal" to item.subtotal
                     )
-                }
+                }.toMap()
 
                 val txData = mapOf(
                     "id" to tx.id,
@@ -913,10 +919,13 @@ class CloudSyncManager(
 
             val transactions = transactionDao.getAllTransactionsSync()
             for (t in transactions) {
-                val items = transactionDao.getItemsForTransactionSync(t.id)
-                val itemsMap = items.associate { item ->
-                    item.id.toString() to mapOf(
-                        "id" to item.id,
+                val rawItems = transactionDao.getItemsForTransactionSync(t.id)
+                val items = TransactionItemHelper.deduplicateItems(rawItems, t.totalAmount)
+                val itemsMap = items.mapIndexed { index, item ->
+                    val stableId = if (item.id > 0) item.id else (index + 1).toLong()
+                    val itemKey = "item_${item.productId}_$stableId"
+                    itemKey to mapOf(
+                        "id" to stableId,
                         "transactionId" to t.id,
                         "productId" to item.productId,
                         "productName" to item.productName,
@@ -926,7 +935,7 @@ class CloudSyncManager(
                         "unitCost" to item.unitCost,
                         "subtotal" to item.subtotal
                     )
-                }
+                }.toMap()
 
                 storeRef.child("transactions").child(t.id.toString()).setValue(
                     mapOf(

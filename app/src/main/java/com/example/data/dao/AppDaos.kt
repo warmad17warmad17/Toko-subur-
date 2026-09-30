@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.data.model.CategoryEntity
+import com.example.data.model.ExcludedPromoProductEntity
 import com.example.data.model.ExpenseEntity
 import com.example.data.model.ProductEntity
 import com.example.data.model.StoreSettingsEntity
@@ -168,4 +169,25 @@ interface StoreSettingsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateSettings(settings: StoreSettingsEntity)
+}
+
+@Dao
+interface ExcludedPromoProductDao {
+    @Query("SELECT * FROM excluded_promo_products ORDER BY excludedAt DESC")
+    fun getAllExcluded(): Flow<List<ExcludedPromoProductEntity>>
+
+    @Query("SELECT * FROM excluded_promo_products ORDER BY excludedAt DESC")
+    suspend fun getAllExcludedSync(): List<ExcludedPromoProductEntity>
+
+    @Query("SELECT * FROM excluded_promo_products WHERE productId = :productId LIMIT 1")
+    suspend fun getExcludedByProductId(productId: Long): ExcludedPromoProductEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExcluded(item: ExcludedPromoProductEntity)
+
+    @Query("DELETE FROM excluded_promo_products WHERE productId = :productId")
+    suspend fun deleteByProductId(productId: Long)
+
+    @Query("DELETE FROM excluded_promo_products")
+    suspend fun clearAll()
 }

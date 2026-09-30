@@ -50,7 +50,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.data.model.DailyReportSummary
+import com.example.data.model.ExcludedPromoProductEntity
+import com.example.data.model.TopSellingProduct
 import com.example.data.model.WeeklyReportSummary
+import com.example.util.TransactionItemHelper
 
 data class CartItem(
     val product: ProductEntity,
@@ -110,7 +113,8 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             db.productDao(),
             db.transactionDao(),
             db.expenseDao(),
-            db.storeSettingsDao()
+            db.storeSettingsDao(),
+            db.excludedPromoProductDao()
         )
         cloudSyncManager = CloudSyncManager(
             application,
@@ -132,8 +136,9 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // Automatically sync HPP for any existing transactions on startup
+        // Automatically cleanup duplicate items and sync HPP for any existing transactions on startup
         viewModelScope.launch {
+            repository.cleanupDuplicateTransactionItems()
             repository.syncTransactionsHpp()
         }
 
@@ -196,6 +201,107 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    // Excluded Promo Products (Produk promo yang dikecualikan dari 10 produk terlaris)
+    val excludedPromoProducts: StateFlow<List<ExcludedPromoProductEntity>> = repository.excludedPromoProducts
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun addExcludedPromoProduct(product: ProductEntity, reason: String = "Sedang Promo Toko") {
+        viewModelScope.launch {
+            repository.addExcludedPromoProduct(product.id, product.name, reason)
+            emitMessage("Produk '${product.name}' ditambahkan ke daftar pengecualian promo.")
+        }
+    }
+
+    fun removeExcludedPromoProduct(productId: Long) {
+        viewModelScope.launch {
+            repository.removeExcludedPromoProduct(productId)
+            emitMessage("Produk dihapus dari daftar pengecualian promo.")
+        }
+    }
+
+    // -------------------------------------------------------------
+    // KATALOG 10 PRODUK TERLARIS DALAM SATU MINGGU (7 HARI TERAKHIR)
+    // -------------------------------------------------------------
+    val topSellingProductsInOneWeek: StateFlow<List<TopSellingProduct>> = combine(
+        allTransactions,
+        repository.allTransactionItems,
+        allProducts,
+        excludedPromoProducts
+    ) { transactions, allItems, products, excludedList ->
+        val oneWeekAgo = DateFormatter.getStartOfLast7Days()
+        val weekTransactions = transactions.filter { it.timestamp >= oneWeekAgo }
+        if (weekTransactions.isEmpty() || allItems.isEmpty()) {
+            return@combine emptyList<TopSellingProduct>()
+        }
+
+        val weekTxMap = weekTransactions.associateBy { it.id }
+        val excludedProductIds = excludedList.map { it.productId }.toSet()
+        val excludedNames = excludedList.map { it.productName.trim().lowercase() }.toSet()
+
+        // Ambil item transaksi 7 hari terakhir yang dikelompokkan per transaksi untuk dideduplikasi
+        val itemsByTx = allItems.filter { it.transactionId in weekTxMap }.groupBy { it.transactionId }
+
+        val deduplicatedItems = mutableListOf<TransactionItemEntity>()
+        for ((txId, items) in itemsByTx) {
+            val tx = weekTxMap[txId]
+            val cleanItems = TransactionItemHelper.deduplicateItems(items, tx?.totalAmount ?: 0.0)
+            deduplicatedItems.addAll(cleanItems)
+        }
+
+        val productMap = products.associateBy { it.id }
+        val groupedByProduct = deduplicatedItems.groupBy { item ->
+            if (item.productId > 0L) "id_${item.productId}" else "name_${item.productName.trim().lowercase()}"
+        }
+
+        val summaryList = mutableListOf<TopSellingProduct>()
+        for ((_, items) in groupedByProduct) {
+            val first = items.first()
+            val prod = productMap[first.productId] ?: products.firstOrNull {
+                it.name.equals(first.productName, ignoreCase = true) ||
+                (first.qrCode.isNotBlank() && it.qrCode.equals(first.qrCode, ignoreCase = true))
+            }
+
+            val pId = prod?.id ?: first.productId
+            val pName = prod?.name ?: first.productName
+
+            // Pengecualian promo toko: produk promo TIDAK termasuk 10 terlaris
+            if (pId in excludedProductIds || pName.trim().lowercase() in excludedNames) {
+                continue
+            }
+
+            val totalSold = items.sumOf { it.quantity }
+            val totalRevenue = items.sumOf { it.subtotal }
+
+            if (totalSold > 0) {
+                summaryList.add(
+                    TopSellingProduct(
+                        rank = 0,
+                        productId = pId,
+                        productName = pName,
+                        qrCode = prod?.qrCode ?: first.qrCode,
+                        categoryName = prod?.categoryName ?: "Umum",
+                        totalSoldQuantity = totalSold,
+                        totalRevenue = totalRevenue,
+                        currentStock = prod?.stok ?: 0,
+                        currentPrice = prod?.hargaJual ?: first.unitPrice,
+                        product = prod
+                    )
+                )
+            }
+        }
+
+        summaryList.sortedWith(
+            compareByDescending<TopSellingProduct> { it.totalSoldQuantity }
+                .thenByDescending { it.totalRevenue }
+        ).take(10).mapIndexed { index, item ->
+            item.copy(rank = index + 1)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // UI Events & Toasts
     private val _userMessage = MutableSharedFlow<String>()
@@ -350,7 +456,10 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addToCart(product: ProductEntity) {
         val currentCart = _cart.value.toMutableList()
-        val existingIndex = currentCart.indexOfFirst { it.product.id == product.id }
+        val existingIndex = currentCart.indexOfFirst {
+            it.product.id == product.id ||
+            (it.product.qrCode.isNotBlank() && it.product.qrCode.equals(product.qrCode, ignoreCase = true))
+        }
         if (existingIndex >= 0) {
             val existing = currentCart[existingIndex]
             if (existing.quantity >= product.stok) {
@@ -459,7 +568,8 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
     fun showReceiptForTransaction(transaction: TransactionEntity) {
         viewModelScope.launch {
             val items = repository.getItemsForTransactionSync(transaction.id)
-            _currentReceiptTransaction.value = transaction
+            val updatedTx = repository.getTransactionById(transaction.id) ?: transaction
+            _currentReceiptTransaction.value = updatedTx
             _currentReceiptItems.value = items
             _showReceiptDialog.value = true
         }
@@ -516,8 +626,8 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val txId = repository.processSale(tx, txItems)
-            val savedTx = tx.copy(id = txId)
-            val savedItems = txItems.map { it.copy(transactionId = txId) }
+            val savedTx = repository.getTransactionById(txId) ?: tx.copy(id = txId)
+            val savedItems = repository.getItemsForTransactionSync(txId)
 
             // Push to cloud in real time for other phones
             cloudSyncManager.pushTransaction(savedTx, savedItems)
@@ -916,11 +1026,12 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
 
     fun syncHppManually() {
         viewModelScope.launch {
+            val cleaned = repository.cleanupDuplicateTransactionItems()
             val count = repository.syncTransactionsHpp()
-            if (count > 0) {
-                emitMessage("Berhasil menyinkronkan HPP untuk $count transaksi!")
+            if (cleaned > 0 || count > 0) {
+                emitMessage("Berhasil merapikan struk & menyinkronkan HPP untuk ${maxOf(cleaned, count)} transaksi!")
             } else {
-                emitMessage("HPP semua transaksi sudah sinkron dengan harga beli produk")
+                emitMessage("Seluruh struk transaksi dan HPP sudah sinkron dan akurat")
             }
         }
     }
@@ -1016,6 +1127,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
                     allTxItems.addAll(repository.getItemsForTransactionSync(tx.id))
                 }
                 val expenses = repository.getAllExpensesSync()
+                val excludedPromoProducts = repository.getExcludedPromoProductsSync()
 
                 val jsonContent = BackupManager.exportToJson(
                     settings = settings,
@@ -1023,7 +1135,8 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
                     products = products,
                     transactions = transactions,
                     transactionItems = allTxItems,
-                    expenses = expenses
+                    expenses = expenses,
+                    excludedPromoProducts = excludedPromoProducts
                 )
 
                 context.contentResolver.openOutputStream(uri)?.use { outputStream ->
@@ -1082,7 +1195,8 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
                     products = backupData.products,
                     transactions = backupData.transactions,
                     transactionItems = backupData.transactionItems,
-                    expenses = backupData.expenses
+                    expenses = backupData.expenses,
+                    excludedPromoProducts = backupData.excludedPromoProducts
                 )
 
                 emitMessage("✓ Berhasil memulihkan ${backupData.products.size} produk dan data transaksi!")

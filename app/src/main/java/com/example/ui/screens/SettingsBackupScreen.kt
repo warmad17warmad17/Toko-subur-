@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -111,6 +112,8 @@ import com.example.R
 import com.example.data.sync.SyncStatus
 import com.example.ui.components.GoogleSyncDialog
 import com.example.ui.components.NotificationSoundPickerDialog
+import com.example.ui.components.PromoExclusionManagerDialog
+import com.example.ui.components.AddPromoExclusionPickerDialog
 import com.example.ui.viewmodel.TokoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -145,6 +148,11 @@ fun SettingsBackupScreen(
     val customDatabaseUrl by viewModel.customDatabaseUrl.collectAsStateWithLifecycle()
     val customStoreCode by viewModel.customStoreCode.collectAsStateWithLifecycle()
     var showGoogleSyncDialog by remember { mutableStateOf(false) }
+
+    val excludedPromoProducts by viewModel.excludedPromoProducts.collectAsStateWithLifecycle()
+    val allProducts by viewModel.allProducts.collectAsStateWithLifecycle()
+    var showPromoExclusionManagerDialog by remember { mutableStateOf(false) }
+    var showAddPromoExclusionDialog by remember { mutableStateOf(false) }
 
     val currentUserRole by viewModel.currentUserRole.collectAsStateWithLifecycle()
     val activeCashierCount by viewModel.activeCashierCount.collectAsStateWithLifecycle()
@@ -1179,6 +1187,190 @@ fun SettingsBackupScreen(
                 }
             }
 
+            // Section: Daftar Pengecualian 10 Produk Terlaris (Promo Toko)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("card_promo_exclusions_settings"),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFFFEF3C7)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.LocalOffer,
+                                    contentDescription = null,
+                                    tint = Color(0xFFD97706),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Pengecualian 10 Produk Terlaris",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Daftar produk promo toko yang tidak dimasukkan ke 10 terlaris",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        if (excludedPromoProducts.isNotEmpty()) {
+                            Surface(
+                                color = Color(0xFFFEF3C7),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = "${excludedPromoProducts.size} Promo",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Jika terdapat produk yang sedang dalam masa promosi/diskon toko, masukkan produk tersebut ke daftar ini. Hal ini bertujuan agar produk promo tidak mendominasi atau masuk ke dalam 10 produk terlaris mingguan.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (excludedPromoProducts.isEmpty()) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Belum ada produk promo yang dikecualikan. Semua produk penjualan dihitung ke dalam peringkat 10 terlaris.",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            excludedPromoProducts.take(4).forEach { item ->
+                                Surface(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = item.productName,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 13.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "🏷️ ${item.reason}",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFFD97706)
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = { viewModel.removeExcludedPromoProduct(item.productId) },
+                                            modifier = Modifier.size(28.dp).testTag("delete_excluded_promo_${item.productId}")
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Hapus Pengecualian",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            if (excludedPromoProducts.size > 4) {
+                                TextButton(
+                                    onClick = { showPromoExclusionManagerDialog = true },
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                ) {
+                                    Text("Lihat semua ${excludedPromoProducts.size} produk promo ->", fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { showAddPromoExclusionDialog = true },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("btn_add_promo_exclusion_settings"),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Tambah Produk Promo", fontSize = 12.sp)
+                        }
+
+                        if (excludedPromoProducts.isNotEmpty()) {
+                            OutlinedButton(
+                                onClick = { showPromoExclusionManagerDialog = true },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.testTag("btn_manage_promo_settings")
+                            ) {
+                                Text("Kelola", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Section: Notifikasi Suara Stok Menipis & Peringatan Audio
             Card(
                 modifier = Modifier
@@ -1777,6 +1969,35 @@ fun SettingsBackupScreen(
             currentUserRole = currentUserRole,
             currentDeviceId = viewModel.authRoleManager.deviceId,
             onDismiss = { viewModel.dismissActiveCashiersDialog() }
+        )
+    }
+
+    if (showPromoExclusionManagerDialog) {
+        PromoExclusionManagerDialog(
+            excludedList = excludedPromoProducts,
+            allProducts = allProducts,
+            onAddExclusion = { prod, reason ->
+                viewModel.addExcludedPromoProduct(prod, reason)
+            },
+            onRemoveExclusion = { pId ->
+                viewModel.removeExcludedPromoProduct(pId)
+            },
+            onDismiss = { showPromoExclusionManagerDialog = false }
+        )
+    }
+
+    if (showAddPromoExclusionDialog) {
+        val excludedIds = remember(excludedPromoProducts) { excludedPromoProducts.map { it.productId }.toSet() }
+        val eligibleProducts = remember(allProducts, excludedIds) {
+            allProducts.filter { it.id !in excludedIds }
+        }
+        AddPromoExclusionPickerDialog(
+            availableProducts = eligibleProducts,
+            onProductSelected = { prod, reason ->
+                viewModel.addExcludedPromoProduct(prod, reason)
+                showAddPromoExclusionDialog = false
+            },
+            onDismiss = { showAddPromoExclusionDialog = false }
         )
     }
 }

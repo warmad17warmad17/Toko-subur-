@@ -72,5 +72,15 @@ data class StoreSettingsEntity(
     val storePhone: String = "0812-3456-7890",
     val receiptFooter: String = "Terima kasih telah berbelanja di TOKO SUBUR!\nBarang yang sudah dibeli tidak dapat ditukar.",
     val initialCashCapital: Double = 500000.0, // Modal Kas Toko awal
-    val quickNominals: String = "10,20,30,50,100"
+    val quickNominals: String = "10,20,30,50,100",
+    val topSellingLimit: Int = 10
+)
+
+@Entity(tableName = "excluded_promo_products")
+data class ExcludedPromoProductEntity(
+    @PrimaryKey
+    val productId: Long,
+    val productName: String,
+    val reason: String = "Sedang Promo Toko",
+    val excludedAt: Long = System.currentTimeMillis()
 )

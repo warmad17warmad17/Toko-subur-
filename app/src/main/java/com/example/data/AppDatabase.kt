@@ -6,16 +6,19 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.data.dao.CategoryDao
+import com.example.data.dao.ExcludedPromoProductDao
 import com.example.data.dao.ExpenseDao
 import com.example.data.dao.ProductDao
 import com.example.data.dao.StoreSettingsDao
 import com.example.data.dao.TransactionDao
 import com.example.data.model.CategoryEntity
+import com.example.data.model.ExcludedPromoProductEntity
 import com.example.data.model.ExpenseEntity
 import com.example.data.model.ProductEntity
 import com.example.data.model.StoreSettingsEntity
 import com.example.data.model.TransactionEntity
 import com.example.data.model.TransactionItemEntity
+import androidx.room.migration.Migration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,9 +30,10 @@ import kotlinx.coroutines.launch
         TransactionEntity::class,
         TransactionItemEntity::class,
         ExpenseEntity::class,
-        StoreSettingsEntity::class
+        StoreSettingsEntity::class,
+        ExcludedPromoProductEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,10 +42,34 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun expenseDao(): ExpenseDao
     abstract fun storeSettingsDao(): StoreSettingsDao
+    abstract fun excludedPromoProductDao(): ExcludedPromoProductDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `excluded_promo_products` (
+                        `productId` INTEGER NOT NULL PRIMARY KEY,
+                        `productName` TEXT NOT NULL,
+                        `reason` TEXT NOT NULL,
+                        `excludedAt` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `store_settings` ADD COLUMN `topSellingLimit` INTEGER NOT NULL DEFAULT 10"
+                )
+            }
+        }
 
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -50,7 +78,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "toko_makmur_db"
                 )
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .fallbackToDestructiveMigration(true)
                     .addCallback(DatabaseCallback(scope))
                     .build()
                 INSTANCE = instance

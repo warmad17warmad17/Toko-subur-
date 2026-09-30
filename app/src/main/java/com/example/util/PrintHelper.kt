@@ -34,6 +34,7 @@ object PrintHelper {
         transaction: TransactionEntity,
         items: List<TransactionItemEntity>
     ): String {
+        val cleanItems = TransactionItemHelper.deduplicateItems(items, transaction.totalAmount)
         val sb = StringBuilder()
         val line = "--------------------------------"
         val doubleLine = "================================"
@@ -50,7 +51,7 @@ object PrintHelper {
         sb.append("Kasir     : ").append(settings.storeName).append("\n")
         sb.append(line).append("\n")
 
-        for (item in items) {
+        for (item in cleanItems) {
             sb.append(item.productName).append("\n")
             val qtyPrice = "  ${item.quantity} x ${CurrencyFormatter.formatRupiah(item.unitPrice)}"
             val subtotal = CurrencyFormatter.formatRupiah(item.subtotal)
@@ -158,6 +159,7 @@ object PrintHelper {
         transaction: TransactionEntity,
         items: List<TransactionItemEntity>
     ): Bitmap {
+        val cleanItems = TransactionItemHelper.deduplicateItems(items, transaction.totalAmount)
         val bitmapWidth = 600
         val horizontalPadding = 36f
         val printableWidth = bitmapWidth - (horizontalPadding * 2)
@@ -243,7 +245,7 @@ object PrintHelper {
 
         // Item height calculations
         var itemsTotalHeight = 0
-        val preparedItems = items.map { item ->
+        val preparedItems = cleanItems.map { item ->
             val nameLines = wrapText(item.productName, boldTextPaint, printableWidth)
             val heightForItem = (nameLines.size * 26) + 30 + 10
             itemsTotalHeight += heightForItem
@@ -453,8 +455,9 @@ object PrintHelper {
         transaction: TransactionEntity,
         items: List<TransactionItemEntity>
     ): String {
+        val cleanItems = TransactionItemHelper.deduplicateItems(items, transaction.totalAmount)
         val itemsHtml = StringBuilder()
-        for (item in items) {
+        for (item in cleanItems) {
             itemsHtml.append(
                 """
                 <tr>
