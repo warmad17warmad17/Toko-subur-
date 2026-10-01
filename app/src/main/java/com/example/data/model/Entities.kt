@@ -60,7 +60,8 @@ data class ExpenseEntity(
     val category: String,
     val amount: Double,
     val timestamp: Long = System.currentTimeMillis(),
-    val notes: String = ""
+    val notes: String = "",
+    val isRestock: Boolean = false // true jika pengeluaran untuk stok ulang produk (tidak memotong laba bersih)
 )
 
 @Entity(tableName = "store_settings")

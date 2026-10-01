@@ -16,5 +16,7 @@ data class WeeklyReportSummary(
     val labaBersih: Double,
     val penjualanTunai: Double,
     val penjualanNonTunai: Double,
-    val transactionCount: Int
+    val transactionCount: Int,
+    val pengeluaranOperasional: Double = expenses.filter { !it.isRestock }.sumOf { it.amount },
+    val pengeluaranStok: Double = expenses.filter { it.isRestock }.sumOf { it.amount }
 )

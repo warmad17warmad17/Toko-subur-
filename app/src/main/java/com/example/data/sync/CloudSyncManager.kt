@@ -482,6 +482,7 @@ class CloudSyncManager(
                                     val amount = child.child("amount").value.toDoubleSafe(0.0)
                                     val timestamp = child.child("timestamp").value.toLongSafe(System.currentTimeMillis())
                                     val notes = child.child("notes").getValue(String::class.java) ?: ""
+                                    val isRestock = child.child("isRestock").getValue(Boolean::class.java) ?: false
 
                                     val expense = ExpenseEntity(
                                         id = id,
@@ -489,7 +490,8 @@ class CloudSyncManager(
                                         category = category,
                                         amount = amount,
                                         timestamp = timestamp,
-                                        notes = notes
+                                        notes = notes,
+                                        isRestock = isRestock
                                     )
                                     expenseDao.insertExpense(expense)
                                 }
@@ -817,6 +819,7 @@ class CloudSyncManager(
                     "amount" to expense.amount,
                     "timestamp" to expense.timestamp,
                     "notes" to expense.notes,
+                    "isRestock" to expense.isRestock,
                     "updatedAt" to System.currentTimeMillis(),
                     "isDeleted" to false
                 )
@@ -964,6 +967,7 @@ class CloudSyncManager(
                         "amount" to e.amount,
                         "timestamp" to e.timestamp,
                         "notes" to e.notes,
+                        "isRestock" to e.isRestock,
                         "updatedAt" to System.currentTimeMillis(),
                         "isDeleted" to false
                     )

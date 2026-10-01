@@ -1,6 +1,9 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,8 +28,10 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MoneyOff
+import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -79,8 +84,24 @@ fun CapitalExpenseScreen(
 
     var showEditCapitalDialog by remember { mutableStateOf(false) }
     var showAddEditExpenseDialog by remember { mutableStateOf(false) }
+    var defaultIsRestock by remember { mutableStateOf(false) }
     var expenseToEdit by remember { mutableStateOf<ExpenseEntity?>(null) }
     var expenseToDelete by remember { mutableStateOf<ExpenseEntity?>(null) }
+    var expenseFilter by remember { mutableStateOf("ALL") } // "ALL", "OPERASIONAL", "STOK"
+
+    val operationalExpenses = remember(allExpenses) { allExpenses.filter { !it.isRestock } }
+    val restockExpenses = remember(allExpenses) { allExpenses.filter { it.isRestock } }
+    val totalExpenseSum = remember(allExpenses) { allExpenses.sumOf { it.amount } }
+    val totalOperationalSum = remember(operationalExpenses) { operationalExpenses.sumOf { it.amount } }
+    val totalRestockSum = remember(restockExpenses) { restockExpenses.sumOf { it.amount } }
+
+    val displayedExpenses = remember(allExpenses, expenseFilter) {
+        when (expenseFilter) {
+            "OPERASIONAL" -> allExpenses.filter { !it.isRestock }
+            "STOK" -> allExpenses.filter { it.isRestock }
+            else -> allExpenses
+        }
+    }
 
     Box(
         modifier = modifier
@@ -211,54 +232,220 @@ fun CapitalExpenseScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Daftar Pengeluaran & Biaya",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                expenseToEdit = null
-                                showAddEditExpenseDialog = true
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                            modifier = Modifier.testTag("add_expense_top_btn")
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
+                            Text(
+                                text = "Daftar Pengeluaran & Biaya",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Biaya operasional & belanja stok ulang produk",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        // Action Buttons: "+ Stok Produk" (Fitur Pengeluaran Stok Ulang) and "+ Biaya"
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                            Button(
+                                onClick = {
+                                    expenseToEdit = null
+                                    defaultIsRestock = true
+                                    showAddEditExpenseDialog = true
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF4338CA),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
+                                modifier = Modifier.testTag("add_restock_expense_btn")
                             ) {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Inventory2,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "+ Stok Produk",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = {
+                                    expenseToEdit = null
+                                    defaultIsRestock = false
+                                    showAddEditExpenseDialog = true
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
+                                modifier = Modifier.testTag("add_expense_top_btn")
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "+ Biaya",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 3-Column Summary Cards: Total Pengeluaran, Biaya Operasional, Stok Ulang Produk
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Total Keluar", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                                 Text(
-                                    text = "Tambah",
-                                    fontSize = 13.sp,
+                                    CurrencyFormatter.formatRupiah(totalExpenseSum),
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error,
                                     maxLines = 1
+                                )
+                                Text("${allExpenses.size} Catatan", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFEF2F2),
+                            border = BorderStroke(1.dp, Color(0xFFFECACA))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Operasional", fontSize = 10.sp, color = Color(0xFF991B1B), maxLines = 1)
+                                Text(
+                                    CurrencyFormatter.formatRupiah(totalOperationalSum),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFDC2626),
+                                    maxLines = 1
+                                )
+                                Text("Potong Laba & Kas", fontSize = 9.sp, color = Color(0xFFB91C1C), maxLines = 1)
+                            }
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFEEF2FF),
+                            border = BorderStroke(1.dp, Color(0xFFC7D2FE))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Stok Produk", fontSize = 10.sp, color = Color(0xFF3730A3), maxLines = 1)
+                                Text(
+                                    CurrencyFormatter.formatRupiah(totalRestockSum),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4338CA),
+                                    maxLines = 1
+                                )
+                                Text("Potong Kas Laci", fontSize = 9.sp, color = Color(0xFF4338CA), maxLines = 1)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Accounting Notice Card explaining rule
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFF0FDF4),
+                        border = BorderStroke(1.dp, Color(0xFFBBF7D0))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFF16A34A),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Pengeluaran untuk stok ulang produk memotong fisik uang tunai di laci kasir, namun TIDAK mengurangi pendapatan bersih toko karena dicatat sebagai penambahan aset stok barang.",
+                                fontSize = 11.sp,
+                                color = Color(0xFF166534),
+                                lineHeight = 15.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Filter Chips: Semua, Operasional, Stok Ulang
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            Triple("ALL", "Semua (${allExpenses.size})", "filter_all_expenses"),
+                            Triple("OPERASIONAL", "🏢 Operasional (${operationalExpenses.size})", "filter_operational_expenses"),
+                            Triple("STOK", "📦 Stok Produk (${restockExpenses.size})", "filter_restock_expenses")
+                        ).forEach { (key, label, tag) ->
+                            val isSelected = expenseFilter == key
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = if (isSelected) {
+                                    if (key == "STOK") Color(0xFF4338CA) else MaterialTheme.colorScheme.primary
+                                } else MaterialTheme.colorScheme.surfaceVariant,
+                                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+                                modifier = Modifier
+                                    .clickable { expenseFilter = key }
+                                    .testTag(tag)
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                 )
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "Total Pengeluaran: ${CurrencyFormatter.formatRupiah(allExpenses.sumOf { it.amount })}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                if (allExpenses.isEmpty()) {
+                if (displayedExpenses.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -267,20 +454,28 @@ fun CapitalExpenseScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                Icons.Default.MoneyOff,
+                                if (expenseFilter == "STOK") Icons.Default.Inventory2 else Icons.Default.MoneyOff,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(48.dp)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Belum Ada Catatan Pengeluaran",
+                                text = when (expenseFilter) {
+                                    "STOK" -> "Belum Ada Pengeluaran Stok Produk"
+                                    "OPERASIONAL" -> "Belum Ada Biaya Operasional"
+                                    else -> "Belum Ada Catatan Pengeluaran"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "Catat pengeluaran seperti listrik, sewa, kresek, gaji di sini",
+                                text = when (expenseFilter) {
+                                    "STOK" -> "Tekan tombol '+ Stok Produk' untuk mencatat kulakan barang dagangan"
+                                    "OPERASIONAL" -> "Tekan '+ Biaya' untuk mencatat listrik, sewa, gaji, kantong kresek"
+                                    else -> "Catat biaya operasional toko atau belanja stok ulang produk"
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -291,11 +486,12 @@ fun CapitalExpenseScreen(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(allExpenses, key = { it.id }) { expense ->
+                        items(displayedExpenses, key = { it.id }) { expense ->
                             ExpenseItemCard(
                                 expense = expense,
                                 onEdit = {
                                     expenseToEdit = expense
+                                    defaultIsRestock = expense.isRestock
                                     showAddEditExpenseDialog = true
                                 },
                                 onDelete = {
@@ -328,16 +524,18 @@ fun CapitalExpenseScreen(
     if (showAddEditExpenseDialog) {
         AddEditExpenseDialog(
             expense = expenseToEdit,
-            onSave = { title, category, amount, notes ->
+            initialIsRestock = defaultIsRestock,
+            onSave = { title, category, amount, notes, isRestock ->
                 if (expenseToEdit == null) {
-                    viewModel.addExpense(title, category, amount, notes)
+                    viewModel.addExpense(title, category, amount, notes, isRestock)
                 } else {
                     viewModel.updateExpense(
                         expenseToEdit!!.copy(
                             title = title,
                             category = category,
                             amount = amount,
-                            notes = notes
+                            notes = notes,
+                            isRestock = isRestock
                         )
                     )
                 }
@@ -383,13 +581,19 @@ private fun ExpenseItemCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val isRestock = expense.isRestock
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("expense_card_${expense.id}"),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shape = RoundedCornerShape(10.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isRestock) Color(0xFFF8FAFC) else MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(
+            if (isRestock) 1.5.dp else 1.dp,
+            if (isRestock) Color(0xFF818CF8) else MaterialTheme.colorScheme.outlineVariant
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -399,21 +603,35 @@ private fun ExpenseItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = expense.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (isRestock) Icons.Default.Inventory2 else Icons.Default.Receipt,
+                        contentDescription = null,
+                        tint = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = expense.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isRestock) Color(0xFF312E81) else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = if (isRestock) Color(0xFFEEF2FF) else MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
-                            text = expense.category,
+                            text = if (isRestock) "📦 Stok Ulang Produk" else expense.category,
                             fontSize = 11.sp,
+                            fontWeight = if (isRestock) FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(modifier = Modifier.width(6.dp))
@@ -423,9 +641,21 @@ private fun ExpenseItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                Text(
+                    text = if (isRestock)
+                        "• Memotong kas laci • Laba bersih tidak terpotong (Aset Stok)"
+                    else
+                        "• Memotong laba bersih toko & kas laci",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    color = if (isRestock) Color(0xFF4338CA) else Color(0xFF64748B),
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+
                 if (expense.notes.isNotBlank()) {
                     Text(
-                        text = expense.notes,
+                        text = "Catatan: ${expense.notes}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp)
@@ -433,34 +663,38 @@ private fun ExpenseItemCard(
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = CurrencyFormatter.formatRupiah(expense.amount),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.error
                 )
-                IconButton(
-                    onClick = onEdit,
-                    modifier = Modifier.size(32.dp).testTag("edit_expense_${expense.id}")
-                ) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit Pengeluaran",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(32.dp).testTag("delete_expense_${expense.id}")
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Hapus Pengeluaran",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
+                Row(modifier = Modifier.padding(top = 4.dp)) {
+                    IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier.size(32.dp).testTag("edit_expense_${expense.id}")
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit Pengeluaran",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp).testTag("delete_expense_${expense.id}")
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Hapus Pengeluaran",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -547,11 +781,17 @@ private fun EditCapitalDialog(
 @Composable
 private fun AddEditExpenseDialog(
     expense: ExpenseEntity?,
-    onSave: (title: String, category: String, amount: Double, notes: String) -> Unit,
+    initialIsRestock: Boolean = false,
+    onSave: (title: String, category: String, amount: Double, notes: String, isRestock: Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var isRestock by remember { mutableStateOf(expense?.isRestock ?: initialIsRestock) }
     var title by remember { mutableStateOf(expense?.title ?: "") }
-    var category by remember { mutableStateOf(expense?.category ?: "Operasional") }
+    var category by remember {
+        mutableStateOf(
+            expense?.category ?: if (isRestock) "Stok Ulang Produk" else "Operasional"
+        )
+    }
     var amountText by remember {
         mutableStateOf(
             if (expense != null && expense.amount > 0) CurrencyFormatter.formatThousand(expense.amount.toLong()) else ""
@@ -559,7 +799,23 @@ private fun AddEditExpenseDialog(
     }
     var notes by remember { mutableStateOf(expense?.notes ?: "") }
 
-    val defaultCategories = listOf("Operasional", "Listrik & Air", "Sewa & Tempat", "Plastik & Kresek", "Gaji Karyawan", "Lain-lain")
+    val restockPresets = listOf(
+        "Kulakan Barang Dagang",
+        "Stok Ulang Minuman Dus",
+        "Stok Ulang Sembako",
+        "Kulakan Snack / Camilan",
+        "Stok Ulang Rokok",
+        "Pembelian Grosir Produk"
+    )
+
+    val operationalPresets = listOf(
+        "Bayar Tagihan Listrik",
+        "Beli Kantong Plastik & Kresek",
+        "Bayar Sewa Toko / Kios",
+        "Gaji Karyawan Toko",
+        "Air Galon & Kebersihan",
+        "Operasional Umum Toko"
+    )
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -580,18 +836,213 @@ private fun AddEditExpenseDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = if (expense == null) "Tambah Pengeluaran" else "Edit Pengeluaran",
+                    text = if (expense == null) {
+                        if (isRestock) "Tambah Stok Ulang Produk" else "Tambah Biaya Operasional"
+                    } else {
+                        "Edit Catatan Pengeluaran"
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Selector: Stok Ulang Produk vs Biaya Operasional
+                Text(
+                    text = "Pilih Jenis Pengeluaran:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Option 1: Stok Ulang Produk (Kulakan)
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                isRestock = true
+                                if (category == "Operasional" || category.isBlank()) {
+                                    category = "Stok Ulang Produk"
+                                }
+                            }
+                            .testTag("type_restock_btn"),
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isRestock) Color(0xFFEEF2FF) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(
+                            if (isRestock) 2.dp else 1.dp,
+                            if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.outlineVariant
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Inventory2,
+                                    contentDescription = null,
+                                    tint = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Stok Produk",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isRestock) Color(0xFF312E81) else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Kulakan / Belanja Stok",
+                                fontSize = 10.sp,
+                                color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Potong Kas • Laba Tetap",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isRestock) Color(0xFF16A34A) else Color(0xFF64748B)
+                            )
+                        }
+                    }
+
+                    // Option 2: Biaya Operasional
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                isRestock = false
+                                if (category == "Stok Ulang Produk" || category.isBlank()) {
+                                    category = "Operasional"
+                                }
+                            }
+                            .testTag("type_operational_btn"),
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (!isRestock) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(
+                            if (!isRestock) 2.dp else 1.dp,
+                            if (!isRestock) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Receipt,
+                                    contentDescription = null,
+                                    tint = if (!isRestock) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Operasional",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (!isRestock) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Listrik, sewa, gaji, kresek",
+                                fontSize = 10.sp,
+                                color = if (!isRestock) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Potong Kas & Laba",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (!isRestock) MaterialTheme.colorScheme.error else Color(0xFF64748B)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Informative Accounting Impact Callout
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isRestock) Color(0xFFEEF2FF) else Color(0xFFFFFBEB),
+                    border = BorderStroke(1.dp, if (isRestock) Color(0xFFC7D2FE) else Color(0xFFFDE68A))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = null,
+                            tint = if (isRestock) Color(0xFF4338CA) else Color(0xFFB45309),
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isRestock)
+                                "Pengeluaran stok produk memotong uang tunai fisik di laci kasir, namun TIDAK mengurangi pendapatan bersih toko (menjadi aset persediaan barang dagangan)."
+                            else
+                                "Pengeluaran biaya operasional memotong uang tunai fisik di laci kasir dan langsung mengurangi pendapatan bersih toko.",
+                            fontSize = 10.sp,
+                            color = if (isRestock) Color(0xFF312E81) else Color(0xFF92400E),
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Quick Presets
+                Text(
+                    text = "Pilihan Cepat:",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    (if (isRestock) restockPresets else operationalPresets).forEach { preset ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                            modifier = Modifier.clickable {
+                                title = preset
+                                if (isRestock) {
+                                    category = "Stok Ulang Produk"
+                                } else {
+                                    category = when {
+                                        preset.contains("Listrik", true) -> "Listrik & Air"
+                                        preset.contains("Plastik", true) -> "Plastik & Kresek"
+                                        preset.contains("Sewa", true) -> "Sewa & Tempat"
+                                        preset.contains("Gaji", true) -> "Gaji Karyawan"
+                                        else -> "Operasional"
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(
+                                text = "+ $preset",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Nama Pengeluaran") },
-                    placeholder = { Text("Contoh: Bayar Tagihan Listrik") },
+                    label = { Text(if (isRestock) "Nama Pembelian / Kulakan Produk" else "Nama Pengeluaran") },
+                    placeholder = { Text(if (isRestock) "Contoh: Kulakan Minuman & Snack Dus" else "Contoh: Bayar Tagihan Listrik") },
                     modifier = Modifier.fillMaxWidth().testTag("expense_title_input"),
                     singleLine = true
                 )
@@ -602,7 +1053,7 @@ private fun AddEditExpenseDialog(
                     value = category,
                     onValueChange = { category = it },
                     label = { Text("Kategori Pengeluaran") },
-                    placeholder = { Text("Operasional / Listrik / Sewa dll") },
+                    placeholder = { Text("Stok Ulang Produk / Operasional / Listrik dll") },
                     modifier = Modifier.fillMaxWidth().testTag("expense_category_input"),
                     singleLine = true
                 )
@@ -644,12 +1095,15 @@ private fun AddEditExpenseDialog(
                     Button(
                         onClick = {
                             val amount = CurrencyFormatter.parseAmount(amountText)
-                            onSave(title, category, amount, notes)
+                            onSave(title, category, amount, notes, isRestock)
                         },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.primary
+                        ),
                         enabled = title.isNotBlank() && amountText.isNotBlank(),
                         modifier = Modifier.testTag("save_expense_btn")
                     ) {
-                        Text("Simpan")
+                        Text(if (isRestock) "Simpan Stok Ulang" else "Simpan")
                     }
                 }
             }

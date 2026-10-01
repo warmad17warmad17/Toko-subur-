@@ -802,18 +802,26 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
     // -------------------------------------------------------------
     // EXPENSES & CAPITAL (MODAL & PENGELUARAN)
     // -------------------------------------------------------------
-    fun addExpense(title: String, category: String, amount: Double, notes: String = "") {
+    fun addExpense(
+        title: String,
+        category: String,
+        amount: Double,
+        notes: String = "",
+        isRestock: Boolean = false
+    ) {
         viewModelScope.launch {
             val exp = ExpenseEntity(
                 title = title.trim(),
                 category = category.trim(),
                 amount = amount,
                 timestamp = System.currentTimeMillis(),
-                notes = notes.trim()
+                notes = notes.trim(),
+                isRestock = isRestock
             )
             val newId = repository.addExpense(exp)
             cloudSyncManager.pushExpense(exp.copy(id = newId))
-            emitMessage("Pengeluaran sebesar ${CurrencyFormatter.formatRupiah(amount)} disimpan")
+            val typeDesc = if (isRestock) "Stok ulang produk" else "Pengeluaran"
+            emitMessage("$typeDesc sebesar ${CurrencyFormatter.formatRupiah(amount)} disimpan")
         }
     }
 
@@ -921,8 +929,10 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             val omzet = dayTransactions.sumOf { it.totalAmount }
             val hpp = dayTransactions.sumOf { it.totalCost }
             val labaKotor = omzet - hpp
-            val pengeluaran = dayExpenses.sumOf { it.amount }
-            val labaBersih = labaKotor - pengeluaran
+            val pengeluaranOperasional = dayExpenses.filter { !it.isRestock }.sumOf { it.amount }
+            val pengeluaranStok = dayExpenses.filter { it.isRestock }.sumOf { it.amount }
+            val totalPengeluaran = dayExpenses.sumOf { it.amount }
+            val labaBersih = labaKotor - pengeluaranOperasional // Pengeluaran stok produk tidak memotong laba bersih
             val tunai = dayTransactions.filter { it.paymentType == "TUNAI" }.sumOf { it.totalAmount }
             val nonTunai = dayTransactions.filter { it.paymentType == "NON_TUNAI" }.sumOf { it.totalAmount }
 
@@ -938,11 +948,13 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
                     totalOmzet = omzet,
                     totalHpp = hpp,
                     labaKotor = labaKotor,
-                    totalPengeluaran = pengeluaran,
+                    totalPengeluaran = totalPengeluaran,
                     labaBersih = labaBersih,
                     penjualanTunai = tunai,
                     penjualanNonTunai = nonTunai,
-                    transactionCount = dayTransactions.size
+                    transactionCount = dayTransactions.size,
+                    pengeluaranOperasional = pengeluaranOperasional,
+                    pengeluaranStok = pengeluaranStok
                 )
             )
         }
@@ -1004,8 +1016,10 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             val omzet = weekTransactions.sumOf { it.totalAmount }
             val hpp = weekTransactions.sumOf { it.totalCost }
             val labaKotor = omzet - hpp
-            val pengeluaran = weekExpenses.sumOf { it.amount }
-            val labaBersih = labaKotor - pengeluaran
+            val pengeluaranOperasional = weekExpenses.filter { !it.isRestock }.sumOf { it.amount }
+            val pengeluaranStok = weekExpenses.filter { it.isRestock }.sumOf { it.amount }
+            val totalPengeluaran = weekExpenses.sumOf { it.amount }
+            val labaBersih = labaKotor - pengeluaranOperasional // Pengeluaran stok produk tidak memotong laba bersih
             val tunai = weekTransactions.filter { it.paymentType == "TUNAI" }.sumOf { it.totalAmount }
             val nonTunai = weekTransactions.filter { it.paymentType == "NON_TUNAI" }.sumOf { it.totalAmount }
 
@@ -1024,11 +1038,13 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
                     totalOmzet = omzet,
                     totalHpp = hpp,
                     labaKotor = labaKotor,
-                    totalPengeluaran = pengeluaran,
+                    totalPengeluaran = totalPengeluaran,
                     labaBersih = labaBersih,
                     penjualanTunai = tunai,
                     penjualanNonTunai = nonTunai,
-                    transactionCount = weekTransactions.size
+                    transactionCount = weekTransactions.size,
+                    pengeluaranOperasional = pengeluaranOperasional,
+                    pengeluaranStok = pengeluaranStok
                 )
             )
 

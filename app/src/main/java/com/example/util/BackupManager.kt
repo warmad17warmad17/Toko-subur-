@@ -123,6 +123,7 @@ object BackupManager {
                 put("amount", exp.amount)
                 put("timestamp", exp.timestamp)
                 put("notes", exp.notes)
+                put("isRestock", exp.isRestock)
             }
             expensesArray.put(expObj)
         }
@@ -249,7 +250,8 @@ object BackupManager {
                         category = obj.optString("category", "Umum"),
                         amount = obj.optDouble("amount", 0.0),
                         timestamp = obj.optLong("timestamp", System.currentTimeMillis()),
-                        notes = obj.optString("notes", "")
+                        notes = obj.optString("notes", ""),
+                        isRestock = obj.optBoolean("isRestock", false)
                     )
                 )
             }

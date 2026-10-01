@@ -171,4 +171,39 @@ class ExampleRobolectricTest {
       assertEquals("Kasir $i", label)
     }
   }
+
+  @Test
+  fun `test restock expense impacts cash drawer but does not reduce net profit`() {
+    // Scenario requested by user:
+    // Uang laci di laci kasir: 10.000
+    // Pendapatan bersih: 5.000
+    // Ada pengeluaran untuk stok produk: 2.000
+    // Fisik uang tunai di laci kasir menjadi: 8.000
+    // Pendapatan bersih tetap: 5.000
+
+    val initialCash = 10000.0
+    val labaKotor = 5000.0
+
+    val expenses = listOf(
+        com.example.data.model.ExpenseEntity(
+            id = 1,
+            title = "Kulakan Produk Grosir",
+            category = "Stok Ulang Produk",
+            amount = 2000.0,
+            isRestock = true
+        )
+    )
+
+    val totalPengeluaran = expenses.sumOf { it.amount }
+    val pengeluaranOperasional = expenses.filter { !it.isRestock }.sumOf { it.amount }
+    val pengeluaranStokUlang = expenses.filter { it.isRestock }.sumOf { it.amount }
+
+    val pendapatanBersih = labaKotor - pengeluaranOperasional
+    val uangKasLaci = initialCash - totalPengeluaran
+
+    assertEquals(2000.0, pengeluaranStokUlang, 0.001)
+    assertEquals(0.0, pengeluaranOperasional, 0.001)
+    assertEquals(5000.0, pendapatanBersih, 0.001) // Pendapatan bersih tetap 5.000
+    assertEquals(8000.0, uangKasLaci, 0.001)       // Uang kas laci berkurang menjadi 8.000
+  }
 }

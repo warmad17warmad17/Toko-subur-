@@ -138,7 +138,9 @@ class GoogleAuthManager(private val context: Context) {
 
     suspend fun signOut() {
         try {
-            credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            kotlinx.coroutines.withTimeoutOrNull(1500L) {
+                credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            }
         } catch (e: Exception) {
             Log.w("GoogleAuth", "Error clearing credential state: ${e.message}")
         }

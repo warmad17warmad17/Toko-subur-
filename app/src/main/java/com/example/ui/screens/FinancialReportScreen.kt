@@ -108,10 +108,12 @@ fun FinancialReportScreen(
     val pendapatanKotor = periodTransactions.sumOf { it.totalAmount }
     val totalHpp = periodTransactions.sumOf { it.totalCost }
     val totalPengeluaran = periodExpenses.sumOf { it.amount }
+    val pengeluaranOperasional = periodExpenses.filter { !it.isRestock }.sumOf { it.amount }
+    val pengeluaranStokUlang = periodExpenses.filter { it.isRestock }.sumOf { it.amount }
     val labaKotor = pendapatanKotor - totalHpp
-    val pendapatanBersih = labaKotor - totalPengeluaran
+    val pendapatanBersih = labaKotor - pengeluaranOperasional // Pengeluaran stok produk TIDAK memotong pendapatan bersih
 
-    // Cash reconciliation calculations
+    // Cash reconciliation calculations (pengeluaran stok ulang tetap memotong kas fisik laci kasir)
     val penjualanTunai = periodTransactions.filter { it.paymentType == "TUNAI" }.sumOf { it.totalAmount }
     val penjualanNonTunai = periodTransactions.filter { it.paymentType == "NON_TUNAI" }.sumOf { it.totalAmount }
     val modalKasAwal = storeSettings.initialCashCapital
@@ -433,6 +435,117 @@ fun FinancialReportScreen(
                             text = "Laba Bersih Akhir",
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isProfitPositive) Color(0xFF166534).copy(alpha = 0.8f) else Color(0xFF991B1B).copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            // Summary Card Row 3: Ringkasan Uang Fisik di Laci Kasir vs Pendapatan Bersih
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("report_cash_drawer_card"),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, Color(0xFF86EFAC))
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.PointOfSale,
+                                contentDescription = null,
+                                tint = Color(0xFF15803D),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Fisik Uang Tunai di Laci Kasir",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF14532D)
+                            )
+                        }
+                        Text(
+                            text = CurrencyFormatter.formatRupiah(estimasiUangKasFisik),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF15803D)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White,
+                            border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Penjualan Tunai", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text(
+                                    CurrencyFormatter.formatRupiah(penjualanTunai),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF166534),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White,
+                            border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Stok Ulang Produk", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text(
+                                    CurrencyFormatter.formatRupiah(pengeluaranStokUlang),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4338CA),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White,
+                            border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text("Biaya Operasional", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text(
+                                    CurrencyFormatter.formatRupiah(pengeluaranOperasional),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFDC2626),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+
+                    if (pengeluaranStokUlang > 0) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "💡 Pengeluaran stok produk (${CurrencyFormatter.formatRupiah(pengeluaranStokUlang)}) memotong kas laci, namun pendapatan bersih toko tetap utuh (${CurrencyFormatter.formatRupiah(pendapatanBersih)}) karena dicatat sebagai aset inventaris.",
+                            fontSize = 10.sp,
+                            color = Color(0xFF1E40AF),
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -876,7 +989,17 @@ fun FinancialReportScreen(
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
-                    ReportDetailRow("3. Biaya Pengeluaran Operasional", "- ${CurrencyFormatter.formatRupiah(totalPengeluaran)}", isNegative = true)
+                    ReportDetailRow("3. Biaya Pengeluaran Operasional", "- ${CurrencyFormatter.formatRupiah(pengeluaranOperasional)}", isNegative = true)
+                    if (pengeluaranStokUlang > 0) {
+                        ReportDetailRow("4. Pengeluaran Stok Ulang Produk", CurrencyFormatter.formatRupiah(pengeluaranStokUlang), valueColor = Color(0xFF4338CA))
+                        Text(
+                            text = "* Masuk ke aset inventaris produk: tidak memotong pendapatan bersih, hanya memotong uang tunai laci kasir.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF4338CA),
+                            fontSize = 10.sp,
+                            modifier = Modifier.padding(start = 2.dp, bottom = 4.dp)
+                        )
+                    }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
 
                     ReportDetailRow(
@@ -1007,7 +1130,14 @@ fun FinancialReportScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             ReportDetailRow("Modal Kas Awal Laci", "+ ${CurrencyFormatter.formatRupiah(modalKasAwal)}")
                             ReportDetailRow("Pemasukan Penjualan Tunai", "+ ${CurrencyFormatter.formatRupiah(penjualanTunai)}")
-                            ReportDetailRow("Pengeluaran Kas Tunai", "- ${CurrencyFormatter.formatRupiah(totalPengeluaran)}")
+                            if (pengeluaranStokUlang > 0 && pengeluaranOperasional > 0) {
+                                ReportDetailRow("Pengeluaran Operasional (Kas)", "- ${CurrencyFormatter.formatRupiah(pengeluaranOperasional)}")
+                                ReportDetailRow("Pengeluaran Stok Ulang (Kas)", "- ${CurrencyFormatter.formatRupiah(pengeluaranStokUlang)}")
+                            } else if (pengeluaranStokUlang > 0) {
+                                ReportDetailRow("Pengeluaran Stok Ulang (Kas)", "- ${CurrencyFormatter.formatRupiah(pengeluaranStokUlang)}")
+                            } else {
+                                ReportDetailRow("Pengeluaran Kas Tunai", "- ${CurrencyFormatter.formatRupiah(totalPengeluaran)}")
+                            }
                             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color(0xFFCBD5E1))
                             ReportDetailRow(
                                 "Fisik Uang Tunai di Laci Kasir",
@@ -1237,7 +1367,7 @@ fun DailyReportCard(
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                     Text(
-                        CurrencyFormatter.formatRupiah(summary.totalPengeluaran),
+                        CurrencyFormatter.formatRupiah(summary.pengeluaranOperasional),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFDC2626),
@@ -1422,7 +1552,7 @@ fun DailyReportCard(
                     if (summary.expenses.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Pengeluaran Operasional (${summary.expenses.size}):",
+                            text = "Rincian Pengeluaran (${summary.expenses.size}):",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFDC2626)
@@ -1430,31 +1560,53 @@ fun DailyReportCard(
                         Spacer(modifier = Modifier.height(4.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             summary.expenses.forEach { exp ->
+                                val isRestock = exp.isRestock
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFFFEF2F2),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFECACA))
+                                    color = if (isRestock) Color(0xFFEEF2FF) else Color(0xFFFEF2F2),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isRestock) Color(0xFFC7D2FE) else Color(0xFFFECACA))
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Column {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    exp.title,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = if (isRestock) Color(0xFF3730A3) else Color(0xFF991B1B)
+                                                )
+                                                if (isRestock) {
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Surface(
+                                                        color = Color(0xFF4338CA),
+                                                        shape = RoundedCornerShape(4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "Stok Ulang",
+                                                            fontSize = 9.sp,
+                                                            color = Color.White,
+                                                            fontWeight = FontWeight.Bold,
+                                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                             Text(
-                                                exp.title,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = Color(0xFF991B1B)
+                                                text = if (isRestock) "${exp.category} • Potong kas laci (Aset stok)" else exp.category,
+                                                fontSize = 10.sp,
+                                                color = if (isRestock) Color(0xFF4338CA) else Color(0xFFB91C1C)
                                             )
-                                            Text(exp.category, fontSize = 10.sp, color = Color(0xFFB91C1C))
                                         }
                                         Text(
                                             text = "- ${CurrencyFormatter.formatRupiah(exp.amount)}",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFDC2626)
+                                            color = if (isRestock) Color(0xFF4338CA) else Color(0xFFDC2626)
                                         )
                                     }
                                 }
