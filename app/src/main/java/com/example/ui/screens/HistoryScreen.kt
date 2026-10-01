@@ -113,11 +113,15 @@ fun HistoryScreen(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
+                            softWrap = false,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f).padding(end = 4.dp).testTag("history_screen_title")
+                            modifier = Modifier.weight(1f, fill = false).padding(end = 6.dp).testTag("history_screen_title")
                         )
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             // Badge Hak Akses (Pemilik vs Kasir)
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
@@ -145,8 +149,6 @@ fun HistoryScreen(
                                     )
                                 }
                             }
-
-                            Spacer(modifier = Modifier.width(4.dp))
 
                             Surface(
                                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -391,28 +393,35 @@ private fun TransactionHistoryCard(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         shape = RoundedCornerShape(10.dp)
     ) {
-        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             // Header: Invoice No, Date & Payment Badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
                 ) {
                     Text(
                         text = transaction.invoiceNumber,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = DateFormatter.formatFullDateTime(transaction.timestamp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
 
@@ -421,7 +430,7 @@ private fun TransactionHistoryCard(
                     shape = RoundedCornerShape(6.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -430,56 +439,63 @@ private fun TransactionHistoryCard(
                             modifier = Modifier.size(12.dp),
                             tint = if (isNonTunai) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFF166534)
                         )
-                        Spacer(modifier = Modifier.width(3.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (isNonTunai) "NON-TUNAI" else "TUNAI",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isNonTunai) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFF166534)
+                            color = if (isNonTunai) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFF166534),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Details: Total Tagihan, Dibayar, Kembalian
+            // Details: Total Tagihan (Left) and Dibayar / Kembalian (Right stacked)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                     Text(
-                        text = "Total: ",
+                        text = "Total Belanja:",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
                         text = CurrencyFormatter.formatRupiah(transaction.totalAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "Bayar: ${CurrencyFormatter.formatRupiah(transaction.paidAmount)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false
                     )
                     if (transaction.changeAmount > 0) {
                         Text(
                             text = "Kembali: ${CurrencyFormatter.formatRupiah(transaction.changeAmount)}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF16A34A)
+                            color = Color(0xFF16A34A),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -487,31 +503,35 @@ private fun TransactionHistoryCard(
 
             // HPP & Laba badge (if totalCost > 0)
             if (transaction.totalCost > 0) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 val labaTransaksi = transaction.totalAmount - transaction.totalCost
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color(0xFFF1F5F9), shape = RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "HPP: ${CurrencyFormatter.formatRupiah(transaction.totalCost)}",
                         fontSize = 11.sp,
-                        color = Color(0xFF475569)
+                        color = Color(0xFF475569),
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
                         text = "Laba: +${CurrencyFormatter.formatRupiah(labaTransaksi)}",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF16A34A)
+                        color = Color(0xFF16A34A),
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Action: Tombol Hapus (Khusus Pemilik) & Lihat Struk
             Row(
@@ -539,7 +559,9 @@ private fun TransactionHistoryCard(
                         Text(
                             text = "Hapus (Batal)",
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 } else {
@@ -554,7 +576,9 @@ private fun TransactionHistoryCard(
                         text = "Lihat & Cetak Struk",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Icon(
                         Icons.Default.ChevronRight,

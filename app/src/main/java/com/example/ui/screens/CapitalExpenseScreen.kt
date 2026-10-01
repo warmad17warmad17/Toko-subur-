@@ -187,31 +187,39 @@ fun CapitalExpenseScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
                                     Text(
                                         text = "Modal Kas Toko (Tunai):",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                     Text(
                                         text = CurrencyFormatter.formatRupiah(modalKasAwal),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
 
-                                Column(horizontalAlignment = Alignment.End) {
+                                Column(modifier = Modifier.weight(1f).padding(start = 4.dp), horizontalAlignment = Alignment.End) {
                                     Text(
                                         text = "Nilai Aset Stok (Harga Beli):",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                     Text(
                                         text = CurrencyFormatter.formatRupiah(totalInventoryValuation),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -326,15 +334,17 @@ fun CapitalExpenseScreen(
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Total Keluar", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                Text("Total Keluar", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(totalExpenseSum),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.error,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
-                                Text("${allExpenses.size} Catatan", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${allExpenses.size} Catatan", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false)
                             }
                         }
 
@@ -345,15 +355,17 @@ fun CapitalExpenseScreen(
                             border = BorderStroke(1.dp, Color(0xFFFECACA))
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Operasional", fontSize = 10.sp, color = Color(0xFF991B1B), maxLines = 1)
+                                Text("Operasional", fontSize = 10.sp, color = Color(0xFF991B1B), maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(totalOperationalSum),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFDC2626),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
-                                Text("Potong Laba & Kas", fontSize = 9.sp, color = Color(0xFFB91C1C), maxLines = 1)
+                                Text("Potong Laba & Kas", fontSize = 9.sp, color = Color(0xFFB91C1C), maxLines = 1, softWrap = false)
                             }
                         }
 
@@ -364,15 +376,17 @@ fun CapitalExpenseScreen(
                             border = BorderStroke(1.dp, Color(0xFFC7D2FE))
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Stok Produk", fontSize = 10.sp, color = Color(0xFF3730A3), maxLines = 1)
+                                Text("Stok Produk", fontSize = 10.sp, color = Color(0xFF3730A3), maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(totalRestockSum),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4338CA),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
-                                Text("Potong Kas Laci", fontSize = 9.sp, color = Color(0xFF4338CA), maxLines = 1)
+                                Text("Potong Kas Laci", fontSize = 9.sp, color = Color(0xFF4338CA), maxLines = 1, softWrap = false)
                             }
                         }
                     }
@@ -595,15 +609,23 @@ private fun ExpenseItemCard(
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // Row 1: Title & Icon on Left, Amount on Right
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
                     Icon(
                         imageVector = if (isRestock) Icons.Default.Inventory2 else Icons.Default.Receipt,
                         contentDescription = null,
@@ -615,13 +637,36 @@ private fun ExpenseItemCard(
                         text = expense.title,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (isRestock) Color(0xFF312E81) else MaterialTheme.colorScheme.onSurface
+                        color = if (isRestock) Color(0xFF312E81) else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = CurrencyFormatter.formatRupiah(expense.amount),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.error,
+                    maxLines = 1,
+                    softWrap = false
+                )
+            }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Row 2: Category Badge & Date (Never wrapped vertically!) + Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .padding(end = 8.dp)
+                ) {
                     Surface(
                         color = if (isRestock) Color(0xFFEEF2FF) else MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(4.dp)
@@ -631,51 +676,35 @@ private fun ExpenseItemCard(
                             fontSize = 11.sp,
                             fontWeight = if (isRestock) FontWeight.Bold else FontWeight.Normal,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
-                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     Text(
-                        text = DateFormatter.formatShortDate(expense.timestamp),
+                        text = "📅 " + DateFormatter.formatShortDate(expense.timestamp),
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Text(
-                    text = if (isRestock)
-                        "• Memotong kas laci • Laba bersih tidak terpotong (Aset Stok)"
-                    else
-                        "• Memotong laba bersih toko & kas laci",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 10.sp,
-                    color = if (isRestock) Color(0xFF4338CA) else Color(0xFF64748B),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-
-                if (expense.notes.isNotBlank()) {
-                    Text(
-                        text = "Catatan: ${expense.notes}",
-                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = CurrencyFormatter.formatRupiah(expense.amount),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (isRestock) Color(0xFF4338CA) else MaterialTheme.colorScheme.error
-                )
-                Row(modifier = Modifier.padding(top = 4.dp)) {
+                // Action buttons: Edit & Delete
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     IconButton(
                         onClick = onEdit,
-                        modifier = Modifier.size(32.dp).testTag("edit_expense_${expense.id}")
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("edit_expense_${expense.id}")
                     ) {
                         Icon(
                             Icons.Default.Edit,
@@ -686,7 +715,9 @@ private fun ExpenseItemCard(
                     }
                     IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.size(32.dp).testTag("delete_expense_${expense.id}")
+                        modifier = Modifier
+                            .size(28.dp)
+                            .testTag("delete_expense_${expense.id}")
                     ) {
                         Icon(
                             Icons.Default.Delete,
@@ -696,6 +727,31 @@ private fun ExpenseItemCard(
                         )
                     }
                 }
+            }
+
+            Text(
+                text = if (isRestock)
+                    "• Memotong kas laci • Laba bersih tidak terpotong (Aset Stok)"
+                else
+                    "• Memotong laba bersih toko & kas laci",
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 10.sp,
+                color = if (isRestock) Color(0xFF4338CA) else Color(0xFF64748B),
+                modifier = Modifier.padding(top = 4.dp),
+                maxLines = 1,
+                softWrap = false,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+
+            if (expense.notes.isNotBlank()) {
+                Text(
+                    text = "Catatan: ${expense.notes}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
             }
         }
     }

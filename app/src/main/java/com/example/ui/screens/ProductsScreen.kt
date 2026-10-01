@@ -1331,8 +1331,8 @@ private fun AddEditProductDialog(
     // Misal stok ada 5 pcs, diinput 10 pcs -> total jadi 15 pcs!
     var isIncomingAdditionMode by remember { mutableStateOf(isEditMode) }
     var incomingStockStr by remember { mutableStateOf("") }
-    var manualTotalStockStr by remember { mutableStateOf(product?.stok?.toString() ?: "10") }
-    var minStokAlertStr by remember { mutableStateOf(product?.minimumStokAlert?.toString() ?: "5") }
+    var manualTotalStockStr by remember { mutableStateOf(product?.stok?.toString() ?: "") }
+    var minStokAlertStr by remember { mutableStateOf(product?.minimumStokAlert?.toString() ?: "") }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
 
     Dialog(
@@ -1729,9 +1729,9 @@ private fun AddEditProductDialog(
                                     manualTotalStockStr.toIntOrNull() ?: existingStock
                                 }
                             } else {
-                                manualTotalStockStr.toIntOrNull() ?: 10
+                                manualTotalStockStr.toIntOrNull() ?: 0
                             }
-                            val minAlert = minStokAlertStr.toIntOrNull() ?: 5
+                            val minAlert = minStokAlertStr.toIntOrNull() ?: 0
                             val catId = selectedCategory?.id ?: 0L
                             val catName = selectedCategory?.name ?: "Umum"
 

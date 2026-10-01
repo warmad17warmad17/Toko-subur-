@@ -306,12 +306,17 @@ fun FinancialReportScreen(
                             text = CurrencyFormatter.formatRupiah(pendapatanKotor),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "${periodTransactions.size} Transaksi Penjualan",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -335,7 +340,9 @@ fun FinancialReportScreen(
                                 text = "Modal Terjual (HPP)",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF92400E)
+                                color = Color(0xFF92400E),
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
@@ -343,12 +350,17 @@ fun FinancialReportScreen(
                             text = CurrencyFormatter.formatRupiah(totalHpp),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF92400E)
+                            color = Color(0xFF92400E),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Total Harga Beli Produk",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF92400E).copy(alpha = 0.8f)
+                            color = Color(0xFF92400E).copy(alpha = 0.8f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -381,7 +393,9 @@ fun FinancialReportScreen(
                                 text = "Laba Kotor",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isLabaKotorPositive) Color(0xFF0369A1) else Color(0xFF991B1B)
+                                color = if (isLabaKotorPositive) Color(0xFF0369A1) else Color(0xFF991B1B),
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
@@ -389,12 +403,17 @@ fun FinancialReportScreen(
                             text = CurrencyFormatter.formatRupiah(labaKotor),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (isLabaKotorPositive) Color(0xFF0369A1) else Color(0xFF991B1B)
+                            color = if (isLabaKotorPositive) Color(0xFF0369A1) else Color(0xFF991B1B),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Omzet - Modal HPP",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isLabaKotorPositive) Color(0xFF0369A1).copy(alpha = 0.8f) else Color(0xFF991B1B).copy(alpha = 0.8f)
+                            color = if (isLabaKotorPositive) Color(0xFF0369A1).copy(alpha = 0.8f) else Color(0xFF991B1B).copy(alpha = 0.8f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -421,7 +440,9 @@ fun FinancialReportScreen(
                                 text = "Pendapatan Bersih",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isProfitPositive) Color(0xFF166534) else Color(0xFF991B1B)
+                                color = if (isProfitPositive) Color(0xFF166534) else Color(0xFF991B1B),
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
@@ -429,12 +450,17 @@ fun FinancialReportScreen(
                             text = CurrencyFormatter.formatRupiah(pendapatanBersih),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (isProfitPositive) Color(0xFF166534) else Color(0xFF991B1B)
+                            color = if (isProfitPositive) Color(0xFF166534) else Color(0xFF991B1B),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Laba Bersih Akhir",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isProfitPositive) Color(0xFF166534).copy(alpha = 0.8f) else Color(0xFF991B1B).copy(alpha = 0.8f)
+                            color = if (isProfitPositive) Color(0xFF166534).copy(alpha = 0.8f) else Color(0xFF991B1B).copy(alpha = 0.8f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -474,7 +500,9 @@ fun FinancialReportScreen(
                             text = CurrencyFormatter.formatRupiah(estimasiUangKasFisik),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF15803D)
+                            color = Color(0xFF15803D),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
 
@@ -491,13 +519,15 @@ fun FinancialReportScreen(
                             border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Penjualan Tunai", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text("Penjualan Tunai", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(penjualanTunai),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF166534),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -509,13 +539,15 @@ fun FinancialReportScreen(
                             border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Stok Ulang Produk", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text("Stok Ulang Produk", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(pengeluaranStokUlang),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4338CA),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -527,13 +559,15 @@ fun FinancialReportScreen(
                             border = BorderStroke(0.5.dp, Color(0xFFE2E8F0))
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Text("Biaya Operasional", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1)
+                                Text("Biaya Operasional", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
                                 Text(
                                     CurrencyFormatter.formatRupiah(pengeluaranOperasional),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFDC2626),
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -1316,12 +1350,16 @@ fun DailyReportCard(
                             text = CurrencyFormatter.formatRupiah(summary.totalOmzet),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (summary.totalOmzet > 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (summary.totalOmzet > 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Text(
                             text = "${summary.transactionCount} Transaksi",
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                     Spacer(modifier = Modifier.width(4.dp))
@@ -1334,55 +1372,73 @@ fun DailyReportCard(
                 }
             }
 
-            // Quick 4 metrics row (HPP, Laba Kotor, Pengeluaran, Laba Bersih)
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
+            // Quick 4 metrics layout (2 rows of 2 columns) - gives ample space for Rupiah nominals on all phones
+            Spacer(modifier = Modifier.height(8.dp))
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.totalHpp),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF92400E),
-                        maxLines = 1
-                    )
+                // Row 1: HPP Modal & Laba Kotor
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
+                        Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.totalHpp),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF92400E),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f).padding(start = 6.dp), horizontalAlignment = Alignment.End) {
+                        Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.labaKotor),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF0369A1),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.labaKotor),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0369A1),
-                        maxLines = 1
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.pengeluaranOperasional),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDC2626),
-                        maxLines = 1
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.labaBersih),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (summary.labaBersih >= 0) Color(0xFF166534) else Color(0xFFDC2626),
-                        maxLines = 1
-                    )
+
+                // Row 2: Beban Biaya & Laba Bersih
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
+                        Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.pengeluaranOperasional),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFDC2626),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f).padding(start = 6.dp), horizontalAlignment = Alignment.End) {
+                        Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.labaBersih),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (summary.labaBersih >= 0) Color(0xFF16A34A) else Color(0xFFDC2626),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
             }
 
@@ -1642,7 +1698,7 @@ private fun ReportDetailRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1650,7 +1706,10 @@ private fun ReportDetailRow(
             text = label,
             fontSize = fontSize,
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-            color = Color(0xFF334155)
+            color = Color(0xFF334155),
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
         )
         Text(
             text = value,
@@ -1660,7 +1719,10 @@ private fun ReportDetailRow(
                 isPositive -> Color(0xFF16A34A)
                 isNegative -> Color(0xFFDC2626)
                 else -> valueColor
-            }
+            },
+            maxLines = 1,
+            softWrap = false,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End
         )
     }
 }
@@ -1737,12 +1799,16 @@ fun WeeklyReportCard(
                             text = CurrencyFormatter.formatRupiah(summary.totalOmzet),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = if (summary.totalOmzet > 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (summary.totalOmzet > 0) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Text(
                             text = "${summary.transactionCount} Transaksi",
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                     Spacer(modifier = Modifier.width(4.dp))
@@ -1755,50 +1821,73 @@ fun WeeklyReportCard(
                 }
             }
 
-            // Quick 4 metrics row (HPP, Laba Kotor, Pengeluaran, Laba Bersih)
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
+            // Quick 4 metrics layout (2 rows of 2 columns) - gives ample space for Rupiah nominals on all phones
+            Spacer(modifier = Modifier.height(8.dp))
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column {
-                    Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B))
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.totalHpp),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF92400E)
-                    )
+                // Row 1: HPP Modal & Laba Kotor
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
+                        Text("HPP Modal", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.totalHpp),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF92400E),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f).padding(start = 6.dp), horizontalAlignment = Alignment.End) {
+                        Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.labaKotor),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF0369A1),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
-                Column {
-                    Text("Laba Kotor", fontSize = 10.sp, color = Color(0xFF64748B))
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.labaKotor),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0369A1)
-                    )
-                }
-                Column {
-                    Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B))
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.totalPengeluaran),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDC2626)
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B))
-                    Text(
-                        CurrencyFormatter.formatRupiah(summary.labaBersih),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (summary.labaBersih >= 0) Color(0xFF16A34A) else Color(0xFFDC2626)
-                    )
+
+                // Row 2: Beban Biaya & Laba Bersih
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 6.dp)) {
+                        Text("Beban Biaya", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.totalPengeluaran),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFDC2626),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f).padding(start = 6.dp), horizontalAlignment = Alignment.End) {
+                        Text("Laba Bersih", fontSize = 10.sp, color = Color(0xFF64748B), maxLines = 1, softWrap = false)
+                        Text(
+                            CurrencyFormatter.formatRupiah(summary.labaBersih),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (summary.labaBersih >= 0) Color(0xFF16A34A) else Color(0xFFDC2626),
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
             }
 
@@ -1964,7 +2053,9 @@ fun WeeklyReportCard(
                                             Text(
                                                 text = CurrencyFormatter.formatRupiah(tx.totalAmount),
                                                 fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
                                             if (currentUserRole == UserRole.PEMILIK && onDeleteTransaction != null) {
                                                 Spacer(modifier = Modifier.width(4.dp))
@@ -2018,24 +2109,30 @@ fun WeeklyReportCard(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Column {
+                                        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                             Text(
                                                 exp.title,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.SemiBold,
-                                                color = Color(0xFF991B1B)
+                                                color = Color(0xFF991B1B),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                             Text(
                                                 "${exp.category} • ${DateFormatter.formatShortDate(exp.timestamp)}",
                                                 fontSize = 10.sp,
-                                                color = Color(0xFFB91C1C)
+                                                color = Color(0xFFB91C1C),
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
                                         }
                                         Text(
                                             text = "- ${CurrencyFormatter.formatRupiah(exp.amount)}",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFDC2626)
+                                            color = Color(0xFFDC2626),
+                                            maxLines = 1,
+                                            softWrap = false
                                         )
                                     }
                                 }

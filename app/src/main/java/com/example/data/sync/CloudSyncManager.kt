@@ -143,8 +143,8 @@ class CloudSyncManager(
             if (FirebaseApp.getApps(context).isEmpty()) {
                 val url = _customDatabaseUrl.value.ifBlank { DEFAULT_DATABASE_URL }.trim()
                 val customProjectId = prefs.getString("custom_project_id", null) ?: DEFAULT_PROJECT_ID
-                val defaultKey = com.example.BuildConfig.FIREBASE_API_KEY.ifEmpty { DEFAULT_API_KEY }
-                val customApiKey = prefs.getString("custom_api_key", null) ?: defaultKey
+                val defaultKey = com.example.BuildConfig.FIREBASE_API_KEY.ifBlank { "AIzaSy_Placeholder_For_Local_Dev_Key_00" }
+                val customApiKey = prefs.getString("custom_api_key", null)?.ifBlank { null } ?: defaultKey
 
                 val builder = FirebaseOptions.Builder()
                     .setApplicationId(context.packageName)
