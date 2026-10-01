@@ -106,7 +106,9 @@ fun ProductsScreen(
     val allProductsList by viewModel.allProducts.collectAsStateWithLifecycle()
     val filteredProducts by viewModel.filteredProducts.collectAsStateWithLifecycle()
     val totalInventoryValuation by viewModel.totalInventoryValuation.collectAsStateWithLifecycle()
+    val selectedCatalogInventoryValuation by viewModel.selectedCatalogInventoryValuation.collectAsStateWithLifecycle()
     val lowStockCount by viewModel.lowStockProductCount.collectAsStateWithLifecycle()
+    val selectedCatalogLowStockCount by viewModel.selectedCatalogLowStockCount.collectAsStateWithLifecycle()
     val searchQuery by viewModel.productSearchQuery.collectAsStateWithLifecycle()
     val selectedCategoryFilter by viewModel.selectedProductCategoryFilter.collectAsStateWithLifecycle()
     val lowStockFilterActive by viewModel.lowStockFilterActive.collectAsStateWithLifecycle()
@@ -224,15 +226,24 @@ fun ProductsScreen(
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
+                                    val selectedCategoryName = remember(selectedCategoryFilter, allCategories) {
+                                        if (selectedCategoryFilter != null) {
+                                            allCategories.find { it.id == selectedCategoryFilter }?.name
+                                        } else null
+                                    }
                                     Text(
-                                        text = "Total Nilai Aset Stok (Harga Beli):",
+                                        text = if (selectedCategoryName != null) {
+                                            "Total Nilai Aset Stok ($selectedCategoryName):"
+                                        } else {
+                                            "Total Nilai Aset Stok (Harga Beli):"
+                                        },
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        maxLines = 1,
+                                        maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = CurrencyFormatter.formatRupiah(totalInventoryValuation),
+                                        text = CurrencyFormatter.formatRupiah(selectedCatalogInventoryValuation),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -242,7 +253,8 @@ fun ProductsScreen(
                                 }
                             }
 
-                            if (lowStockCount > 0) {
+                            val displayLowStockCount = if (selectedCategoryFilter != null) selectedCatalogLowStockCount else lowStockCount
+                            if (displayLowStockCount > 0) {
                                 Surface(
                                     color = Color(0xFFFEF3C7),
                                     shape = RoundedCornerShape(20.dp),
@@ -260,7 +272,7 @@ fun ProductsScreen(
                                         )
                                         Spacer(modifier = Modifier.width(3.dp))
                                         Text(
-                                            text = "$lowStockCount Menipis",
+                                            text = "$displayLowStockCount Menipis",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF92400E),

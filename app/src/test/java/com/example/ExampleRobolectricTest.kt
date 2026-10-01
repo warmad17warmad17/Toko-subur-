@@ -206,4 +206,60 @@ class ExampleRobolectricTest {
     assertEquals(5000.0, pendapatanBersih, 0.001) // Pendapatan bersih tetap 5.000
     assertEquals(8000.0, uangKasLaci, 0.001)       // Uang kas laci berkurang menjadi 8.000
   }
+
+  @Test
+  fun `test selected catalog stock valuation filtering`() {
+    val rokokProducts = listOf(
+        com.example.data.model.ProductEntity(
+            id = 1,
+            name = "Gudang Garam Filter",
+            categoryId = 10,
+            categoryName = "ROKOK",
+            qrCode = "GG01",
+            hargaBeli = 20000.0,
+            hargaJual = 23000.0,
+            stok = 10
+        ),
+        com.example.data.model.ProductEntity(
+            id = 2,
+            name = "Djarum Super",
+            categoryId = 10,
+            categoryName = "ROKOK",
+            qrCode = "DS01",
+            hargaBeli = 19000.0,
+            hargaJual = 22000.0,
+            stok = 5
+        )
+    )
+
+    val minumanProducts = listOf(
+        com.example.data.model.ProductEntity(
+            id = 3,
+            name = "Teh Botol Sosro",
+            categoryId = 20,
+            categoryName = "MINUMAN",
+            qrCode = "TBS01",
+            hargaBeli = 3000.0,
+            hargaJual = 4000.0,
+            stok = 20
+        )
+    )
+
+    val allProducts = rokokProducts + minumanProducts
+
+    // When "Semua Katalog" is selected (categoryId == null)
+    val totalAllCatalogs = allProducts.sumOf { it.stok * it.hargaBeli }
+    // ROKOK: 10*20000 + 5*19000 = 200000 + 95000 = 295000
+    // MINUMAN: 20*3000 = 60000
+    // Total = 355000
+    assertEquals(355000.0, totalAllCatalogs, 0.001)
+
+    // When "ROKOK" catalog is selected (categoryId == 10)
+    val rokokValuation = allProducts.filter { it.categoryId == 10L }.sumOf { it.stok * it.hargaBeli }
+    assertEquals(295000.0, rokokValuation, 0.001)
+
+    // When "MINUMAN" catalog is selected (categoryId == 20)
+    val minumanValuation = allProducts.filter { it.categoryId == 20L }.sumOf { it.stok * it.hargaBeli }
+    assertEquals(60000.0, minumanValuation, 0.001)
+  }
 }

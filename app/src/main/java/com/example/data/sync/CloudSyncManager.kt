@@ -61,7 +61,7 @@ class CloudSyncManager(
     companion object {
         const val DEFAULT_DATABASE_URL = "https://toko-subur-50bde-default-rtdb.asia-southeast1.firebasedatabase.app"
         const val DEFAULT_PROJECT_ID = "toko-subur-50bde"
-        const val DEFAULT_API_KEY = "AIzaSyB4ZQh7Era0DmniaAtyVaAqeddj0Jq98VM"
+        val DEFAULT_API_KEY: String = com.example.BuildConfig.FIREBASE_API_KEY
         const val DEFAULT_STORE_CODE = "toko_subur"
     }
 

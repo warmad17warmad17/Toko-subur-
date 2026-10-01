@@ -698,28 +698,69 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
         allProducts,
         _productSearchQuery,
         _selectedProductCategoryFilter,
-        _lowStockFilterActive
-    ) { products, query, catFilter, lowStockOnly ->
+        _lowStockFilterActive,
+        allCategories
+    ) { products, query, catFilter, lowStockOnly, categories ->
+        val targetCatName = if (catFilter != null) categories.find { it.id == catFilter }?.name else null
         products.filter { prod ->
             val matchQuery = query.isBlank() ||
                     prod.name.contains(query, ignoreCase = true) ||
                     prod.qrCode.contains(query, ignoreCase = true) ||
                     prod.categoryName.contains(query, ignoreCase = true)
 
-            val matchCategory = catFilter == null || prod.categoryId == catFilter
+            val matchCategory = catFilter == null ||
+                    prod.categoryId == catFilter ||
+                    (targetCatName != null && prod.categoryName.equals(targetCatName, ignoreCase = true))
             val matchLowStock = !lowStockOnly || prod.stok <= prod.minimumStokAlert
 
             matchQuery && matchCategory && matchLowStock
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Product valuation based on buy price: Sum(stok * hargaBeli)
-    val totalInventoryValuation: StateFlow<Double> = allProducts.combine(allProducts) { prods, _ ->
-        prods.sumOf { it.stok * it.hargaBeli }
+    // Total Store-wide product valuation based on buy price: Sum(stok * hargaBeli)
+    val totalInventoryValuation: StateFlow<Double> = allProducts.map { prods ->
+        prods.sumOf { (it.stok.coerceAtLeast(0)) * it.hargaBeli }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val lowStockProductCount: StateFlow<Int> = allProducts.combine(allProducts) { prods, _ ->
+    // Catalog-specific inventory valuation based on selected catalog filter:
+    // If a catalog is selected (e.g., ROKOK), sums buy price asset value for products in that catalog.
+    // If "Semua Katalog" (null) is selected, sums all products across all catalogs.
+    val selectedCatalogInventoryValuation: StateFlow<Double> = combine(
+        allProducts,
+        _selectedProductCategoryFilter,
+        allCategories
+    ) { products, catFilter, categories ->
+        val targetCatName = if (catFilter != null) categories.find { it.id == catFilter }?.name else null
+        val targetProducts = if (catFilter == null) {
+            products
+        } else {
+            products.filter { prod ->
+                prod.categoryId == catFilter ||
+                        (targetCatName != null && prod.categoryName.equals(targetCatName, ignoreCase = true))
+            }
+        }
+        targetProducts.sumOf { (it.stok.coerceAtLeast(0)) * it.hargaBeli }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val lowStockProductCount: StateFlow<Int> = allProducts.map { prods ->
         prods.count { it.stok <= it.minimumStokAlert }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val selectedCatalogLowStockCount: StateFlow<Int> = combine(
+        allProducts,
+        _selectedProductCategoryFilter,
+        allCategories
+    ) { products, catFilter, categories ->
+        val targetCatName = if (catFilter != null) categories.find { it.id == catFilter }?.name else null
+        val targetProducts = if (catFilter == null) {
+            products
+        } else {
+            products.filter { prod ->
+                prod.categoryId == catFilter ||
+                        (targetCatName != null && prod.categoryName.equals(targetCatName, ignoreCase = true))
+            }
+        }
+        targetProducts.count { it.stok <= it.minimumStokAlert }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     init {
