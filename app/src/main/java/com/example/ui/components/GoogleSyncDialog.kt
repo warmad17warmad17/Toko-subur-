@@ -67,6 +67,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.sync.GoogleUser
 import com.example.data.sync.SyncStatus
 import com.example.util.DateFormatter
@@ -99,10 +100,13 @@ fun GoogleSyncDialog(
     var showAdvancedSettings by remember { mutableStateOf(false) }
     var showGoogleLoginSection by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(20.dp))
                 .testTag("google_sync_dialog"),
             color = MaterialTheme.colorScheme.surface,

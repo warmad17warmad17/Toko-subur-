@@ -156,11 +156,15 @@ class MainActivity : ComponentActivity() {
                                                 contentDescription = destination.title
                                             )
                                         },
+                                        alwaysShowLabel = true,
                                         label = {
                                             Text(
                                                 text = destination.title,
                                                 fontSize = 10.sp,
-                                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                             )
                                         },
                                         colors = NavigationBarItemDefaults.colors(

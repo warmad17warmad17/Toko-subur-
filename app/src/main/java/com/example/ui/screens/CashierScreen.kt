@@ -200,18 +200,22 @@ fun CashierScreen(
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp)) {
                             Text(
                                 text = storeSettings.storeName,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.testTag("cashier_store_name_text")
                             )
                             Text(
                                 text = storeSettings.storeAddress,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -228,21 +232,23 @@ fun CashierScreen(
                                 modifier = Modifier.testTag("top_user_role_chip")
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Shield,
                                         contentDescription = null,
                                         tint = Color(0xFFB45309),
-                                        modifier = Modifier.size(15.dp)
+                                        modifier = Modifier.size(14.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
                                     Text(
                                         text = "👑 Pemilik",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF92400E)
+                                        color = Color(0xFF92400E),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -264,16 +270,16 @@ fun CashierScreen(
                                 modifier = Modifier.testTag("top_active_cashier_chip")
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = if (isOnlineSyncActive) Icons.Default.CloudDone else Icons.Default.PointOfSale,
                                         contentDescription = null,
                                         tint = if (isOnlineSyncActive) Color(0xFF16A34A) else MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(15.dp)
+                                        modifier = Modifier.size(14.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
                                     if (isOnlineSyncActive) {
                                         Box(
                                             modifier = Modifier
@@ -281,20 +287,22 @@ fun CashierScreen(
                                                 .clip(RoundedCornerShape(3.dp))
                                                 .background(Color(0xFF16A34A))
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
                                     }
                                     Text(
                                         text = activeCashierLabel,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isOnlineSyncActive) Color(0xFF166534) else MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 1,
+                                        softWrap = false,
                                         modifier = Modifier.testTag("active_cashier_label_text")
                                     )
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
 
                         // Cart item badge
                         BadgedBox(
@@ -315,19 +323,21 @@ fun CashierScreen(
                                         showCheckoutSheet = true
                                     }
                                 },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                                 modifier = Modifier.testTag("top_cart_checkout_button")
                             ) {
                                 Icon(
                                     Icons.Default.ShoppingCart,
                                     contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = CurrencyFormatter.formatRupiah(cartTotal),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
                             }
                         }

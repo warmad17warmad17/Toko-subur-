@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.model.ProductEntity
 import com.example.util.CurrencyFormatter
 
@@ -67,10 +68,13 @@ fun BarcodeScannerDialog(
         keyboardController?.show()
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .testTag("barcode_scanner_dialog"),
             color = MaterialTheme.colorScheme.surface,

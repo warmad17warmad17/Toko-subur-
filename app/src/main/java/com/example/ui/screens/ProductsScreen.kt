@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -80,6 +82,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -93,7 +96,7 @@ import com.example.ui.components.PromoExclusionManagerDialog
 import com.example.ui.viewmodel.TokoViewModel
 import com.example.util.CurrencyFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ProductsScreen(
     viewModel: TokoViewModel,
@@ -142,28 +145,45 @@ fun ProductsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp)
+                        ) {
                             Text(
                                 text = "Katalog & Stok Barang",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "Kelola harga beli, harga jual, stok & kode QR",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
 
                         OutlinedButton(
                             onClick = { showCategoryManagementDialog = true },
                             shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.testTag("manage_categories_btn")
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .testTag("manage_categories_btn")
                         ) {
                             Icon(Icons.Default.Category, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Katalog (${allCategories.size})", fontSize = 12.sp)
+                            Text(
+                                text = "Katalog (${allCategories.size})",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
                         }
                     }
 
@@ -182,10 +202,15 @@ fun ProductsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(40.dp)
+                                        .size(38.dp)
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(MaterialTheme.colorScheme.primary),
                                     contentAlignment = Alignment.Center
@@ -193,21 +218,26 @@ fun ProductsScreen(
                                     Icon(
                                         Icons.Default.Inventory,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimary
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Total Nilai Aset Stok (Harga Beli):",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = CurrencyFormatter.formatRupiah(totalInventoryValuation),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -219,21 +249,23 @@ fun ProductsScreen(
                                     modifier = Modifier.clickable { viewModel.toggleLowStockFilter() }
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
                                             Icons.Default.Warning,
                                             contentDescription = null,
                                             tint = Color(0xFFD97706),
-                                            modifier = Modifier.size(14.dp)
+                                            modifier = Modifier.size(13.dp)
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Spacer(modifier = Modifier.width(3.dp))
                                         Text(
                                             text = "$lowStockCount Menipis",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF92400E)
+                                            color = Color(0xFF92400E),
+                                            maxLines = 1,
+                                            softWrap = false
                                         )
                                     }
                                 }
@@ -259,23 +291,29 @@ fun ProductsScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(if (selectedCatalogTab == 0) MaterialTheme.colorScheme.surface else Color.Transparent)
                         .clickable { selectedCatalogTab = 0 }
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 10.dp, horizontal = 4.dp)
                         .testTag("tab_all_products"),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Inventory,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             tint = if (selectedCatalogTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Text(
-                            text = "Semua Produk (${filteredProducts.size})",
+                            text = "Semua (${filteredProducts.size})",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (selectedCatalogTab == 0) FontWeight.Bold else FontWeight.Medium,
-                            color = if (selectedCatalogTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (selectedCatalogTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -287,23 +325,29 @@ fun ProductsScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(if (selectedCatalogTab == 1) Color(0xFFFEF3C7) else Color.Transparent)
                         .clickable { selectedCatalogTab = 1 }
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 10.dp, horizontal = 4.dp)
                         .testTag("tab_top_selling_products"),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             imageVector = Icons.Default.LocalFireDepartment,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             tint = if (selectedCatalogTab == 1) Color(0xFFD97706) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Text(
-                            text = "🔥 $topSellingLimit Terlaris (1 Minggu)",
+                            text = "🔥 $topSellingLimit Terlaris",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (selectedCatalogTab == 1) FontWeight.Bold else FontWeight.Medium,
-                            color = if (selectedCatalogTab == 1) Color(0xFF92400E) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (selectedCatalogTab == 1) Color(0xFF92400E) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -396,7 +440,7 @@ fun ProductsScreen(
                                     viewModel.setSelectedCategoryFilter(null)
                                     if (lowStockFilterActive) viewModel.toggleLowStockFilter()
                                 },
-                                label = { Text("Semua Katalog") },
+                                label = { Text("Semua Katalog", maxLines = 1, softWrap = false) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -418,7 +462,7 @@ fun ProductsScreen(
                                     )
                                 },
                                 label = {
-                                    Text("Peringatan Stok Menipis (${lowStockCount})")
+                                    Text("Stok Menipis (${lowStockCount})", maxLines = 1, softWrap = false)
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Color(0xFFD97706),
@@ -435,7 +479,7 @@ fun ProductsScreen(
                                         if (selectedCategoryFilter == cat.id) null else cat.id
                                     )
                                 },
-                                label = { Text(cat.name) },
+                                label = { Text(cat.name, maxLines = 1, softWrap = false) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -873,7 +917,7 @@ private fun TopSellingProductItemCard(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
                         Text(
                             text = item.productName,
                             style = MaterialTheme.typography.titleMedium,
@@ -943,8 +987,10 @@ private fun TopSellingProductItemCard(
                         Text(
                             text = "Terjual: ${item.totalSoldQuantity} pcs",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = Color(0xFF1E40AF)
+                            fontSize = 12.sp,
+                            color = Color(0xFF1E40AF),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -954,13 +1000,17 @@ private fun TopSellingProductItemCard(
                     Text(
                         text = "Total Omzet (1 Minggu):",
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = CurrencyFormatter.formatRupiah(item.totalRevenue),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
@@ -991,6 +1041,7 @@ private fun TopSellingProductItemCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProductItemCard(
     product: ProductEntity,
@@ -1031,9 +1082,9 @@ private fun ProductItemCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceVariant,
@@ -1043,7 +1094,9 @@ private fun ProductItemCard(
                                 text = product.categoryName,
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
 
@@ -1057,7 +1110,9 @@ private fun ProductItemCard(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF92400E),
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
                             }
                         }
@@ -1072,7 +1127,9 @@ private fun ProductItemCard(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = Color(0xFF6B21A8),
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
                             }
                         }
@@ -1134,7 +1191,11 @@ private fun ProductItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Harga Beli & Harga Jual
-                Column {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Jual: ",
@@ -1145,7 +1206,8 @@ private fun ProductItemCard(
                             text = CurrencyFormatter.formatRupiah(product.hargaJual),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1157,14 +1219,16 @@ private fun ProductItemCard(
                         Text(
                             text = CurrencyFormatter.formatRupiah(product.hargaBeli),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "(Laba +${CurrencyFormatter.formatRupiah(margin)})",
+                            text = "(+${CurrencyFormatter.formatRupiah(margin)})",
                             fontSize = 11.sp,
                             color = Color(0xFF16A34A),
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                 }
@@ -1179,26 +1243,28 @@ private fun ProductItemCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isLowStock) {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = null,
-                                modifier = Modifier.size(14.dp),
+                                modifier = Modifier.size(13.dp),
                                 tint = if (isOutOfStock) Color(0xFFDC2626) else Color(0xFFD97706)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
                         }
                         Text(
                             text = when {
                                 isOutOfStock -> "Stok Habis (0)"
-                                isLowStock -> "Stok Menipis (${product.stok})"
+                                isLowStock -> "Menipis (${product.stok})"
                                 else -> "Stok: ${product.stok}"
                             },
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            softWrap = false,
                             color = when {
                                 isOutOfStock -> Color(0xFF991B1B)
                                 isLowStock -> Color(0xFF92400E)
@@ -1257,10 +1323,13 @@ private fun AddEditProductDialog(
     var minStokAlertStr by remember { mutableStateOf(product?.minimumStokAlert?.toString() ?: "5") }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .imePadding()
                 .testTag("add_edit_product_dialog"),
@@ -1678,10 +1747,13 @@ private fun CategoryManagementDialog(
     var newCategoryName by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .imePadding()
                 .testTag("category_management_dialog"),
@@ -1699,9 +1771,12 @@ private fun CategoryManagementDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Kelola Katalog",
+                        text = "Kelola & Tambah Katalog",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Tutup")
@@ -1728,8 +1803,8 @@ private fun CategoryManagementDialog(
                             newCategoryName = it
                             errorMessage = null
                         },
-                        label = { Text("Nama Katalog Baru") },
-                        placeholder = { Text("Contoh: Bumbu Masak") },
+                        label = { Text("Nama Katalog Baru", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        placeholder = { Text("Contoh: Bumbu Masak", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         modifier = Modifier
                             .weight(1f)
                             .testTag("new_category_name_input"),
@@ -1744,9 +1819,10 @@ private fun CategoryManagementDialog(
                             }
                         },
                         enabled = newCategoryName.isNotBlank(),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                         modifier = Modifier.testTag("add_category_btn")
                     ) {
-                        Text("Tambah")
+                        Text("Tambah", maxLines = 1, softWrap = false)
                     }
                 }
 
@@ -1789,16 +1865,20 @@ private fun CategoryManagementDialog(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                     Text(
                                         text = cat.name,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = "$productCountInCat produk di katalog ini",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = if (canDelete) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (canDelete) Color(0xFF16A34A) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -1822,7 +1902,9 @@ private fun CategoryManagementDialog(
                                             text = "Ada Produk",
                                             fontSize = 10.sp,
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            softWrap = false
                                         )
                                     }
                                 }
@@ -1845,10 +1927,13 @@ private fun EditTopSellingLimitDialog(
     val presets = listOf(5, 10, 15, 20, 25, 30, 50)
     val parsed = limitInput.toIntOrNull() ?: currentLimit
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .imePadding()
                 .testTag("edit_top_selling_limit_dialog"),

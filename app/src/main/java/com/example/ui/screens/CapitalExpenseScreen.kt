@@ -58,6 +58,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.model.ExpenseEntity
 import com.example.ui.viewmodel.TokoViewModel
@@ -478,10 +479,13 @@ private fun EditCapitalDialog(
         )
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .imePadding()
                 .testTag("edit_capital_dialog"),
@@ -557,10 +561,13 @@ private fun AddEditExpenseDialog(
 
     val defaultCategories = listOf("Operasional", "Listrik & Air", "Sewa & Tempat", "Plastik & Kresek", "Gaji Karyawan", "Lain-lain")
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.94f)
                 .clip(RoundedCornerShape(16.dp))
                 .imePadding()
                 .testTag("add_edit_expense_dialog"),
