@@ -229,6 +229,7 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setSound(soundUri)
             .setVibrate(longArrayOf(0, 250, 150, 250))
+            .setOnlyAlertOnce(true) // Hanya berbunyi 1 kali dan tidak berulang jika notifikasi sudah ada/diperbarui
             .setAutoCancel(true) // Hilang saat disentuh
             .setOngoing(false)   // Dapat diabaikan/di-swipe seperti notifikasi biasa
             .setContentIntent(pendingIntent)
@@ -238,14 +239,6 @@ object NotificationHelper {
             val notificationManager = NotificationManagerCompat.from(context)
             if (notificationManager.areNotificationsEnabled()) {
                 notificationManager.notify(LOW_STOCK_NOTIFICATION_ID, notification)
-
-                // Mainkan suara secara eksplisit agar terdengar jelas saat pemicu aktif
-                try {
-                    val ringtone = RingtoneManager.getRingtone(context, soundUri)
-                    ringtone?.play()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
             }
         } catch (e: SecurityException) {
             // Izin belum diberikan di Android 13+

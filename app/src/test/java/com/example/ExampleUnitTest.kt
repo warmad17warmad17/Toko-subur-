@@ -219,4 +219,67 @@ class ExampleUnitTest {
     val stockUnchanged = existingStock + zeroIncoming
     assertEquals(5, stockUnchanged)
   }
+
+  @Test
+  fun `test low stock detection only triggers when there is new low stock information`() {
+    fun hasNewLowStockAlert(
+      lowStockItems: List<Pair<Long, Int>>, // id to stock
+      lastSignature: String
+    ): Boolean {
+      if (lowStockItems.isEmpty()) return false
+      if (lastSignature.isBlank()) return true
+
+      val previousStockMap = try {
+        lastSignature.split(";").mapNotNull { entry ->
+          val parts = entry.split(":")
+          if (parts.size == 2) {
+            val id = parts[0].toLongOrNull()
+            val stok = parts[1].toIntOrNull()
+            if (id != null && stok != null) id to stok else null
+          } else null
+        }.toMap()
+      } catch (e: Exception) {
+        emptyMap()
+      }
+
+      if (previousStockMap.isEmpty()) return true
+
+      val hasNewLowStockProduct = lowStockItems.any { it.first !in previousStockMap }
+      if (hasNewLowStockProduct) return true
+
+      val hasDecreasedStock = lowStockItems.any { item ->
+        val prevStok = previousStockMap[item.first]
+        prevStok != null && item.second < prevStok
+      }
+      return hasDecreasedStock
+    }
+
+    // 1. Initial detection when lastSignature is empty -> must trigger
+    val initialLow = listOf(1L to 3)
+    val sig1 = "1:3"
+    assertTrue(hasNewLowStockAlert(initialLow, ""))
+
+    // 2. Re-checking when stock has not changed -> must NOT trigger
+    assertFalse(hasNewLowStockAlert(initialLow, sig1))
+
+    // 3. Stock decreases from 3 to 2 -> must trigger
+    val decreasedLow = listOf(1L to 2)
+    val sig2 = "1:2"
+    assertTrue(hasNewLowStockAlert(decreasedLow, sig1))
+
+    // 4. Same state again -> must NOT trigger
+    assertFalse(hasNewLowStockAlert(decreasedLow, sig2))
+
+    // 5. Another product drops to low stock -> must trigger
+    val additionalLow = listOf(1L to 2, 2L to 4)
+    val sig3 = "1:2;2:4"
+    assertTrue(hasNewLowStockAlert(additionalLow, sig2))
+
+    // 6. Restocking product 1 (now only product 2 is low) -> must NOT trigger sound alert
+    val restockedLow = listOf(2L to 4)
+    assertFalse(hasNewLowStockAlert(restockedLow, sig3))
+
+    // 7. All products safe (empty list) -> must NOT trigger alert
+    assertFalse(hasNewLowStockAlert(emptyList(), sig3))
+  }
 }

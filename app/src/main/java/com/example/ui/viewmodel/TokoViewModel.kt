@@ -659,7 +659,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             _showReceiptDialog.value = true
 
             // Periksa stok terbaru setelah transaksi berhasil dikurangi
-            checkAndNotifyLowStock(force = true)
+            checkAndNotifyLowStock(force = false)
 
             emitMessage("Transaksi berhasil disimpan!")
         }
@@ -798,7 +798,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             val newId = repository.addProduct(product)
             cloudSyncManager.pushProduct(product.copy(id = newId))
             emitMessage("Produk '${product.name}' berhasil ditambahkan")
-            checkAndNotifyLowStock(force = true)
+            checkAndNotifyLowStock(force = false)
         }
     }
 
@@ -807,7 +807,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             repository.updateProduct(product)
             cloudSyncManager.pushProduct(product)
             emitMessage("Produk '${product.name}' berhasil diperbarui")
-            checkAndNotifyLowStock(force = true)
+            checkAndNotifyLowStock(force = false)
         }
     }
 
@@ -1288,7 +1288,7 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
             emitMessage("Notifikasi stok menipis dinonaktifkan")
         } else {
             notificationPrefs.resetSignature()
-            checkAndNotifyLowStock(force = true)
+            checkAndNotifyLowStock(force = false)
             emitMessage("Notifikasi stok menipis diaktifkan")
         }
     }
@@ -1318,13 +1318,55 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun triggerManualLowStockCheck() {
-        checkAndNotifyLowStock(force = true)
         val lowStockItems = allProducts.value.filter { it.stok <= it.minimumStokAlert }
         if (lowStockItems.isNotEmpty()) {
+            checkAndNotifyLowStock(force = true)
             emitMessage("Notifikasi suara dikirim untuk ${lowStockItems.size} produk dengan stok menipis")
         } else {
+            NotificationHelper.cancelLowStockNotification(getApplication())
+            notificationPrefs.resetSignature()
             emitMessage("Semua produk masih memiliki stok aman!")
         }
+    }
+
+    /**
+     * Memeriksa apakah ada informasi terbaru mengenai stok produk menipis:
+     * - Mendeteksi produk baru yang baru masuk ke batas stok menipis.
+     * - Mendeteksi produk menipis yang stoknya berkurang lagi.
+     * - Tidak memicu suara jika stok tidak berubah atau hanya di-restock (bertambah).
+     */
+    private fun hasNewLowStockAlert(
+        lowStockItems: List<ProductEntity>,
+        lastSignature: String
+    ): Boolean {
+        if (lowStockItems.isEmpty()) return false
+        if (lastSignature.isBlank()) return true
+
+        val previousStockMap = try {
+            lastSignature.split(";").mapNotNull { entry ->
+                val parts = entry.split(":")
+                if (parts.size == 2) {
+                    val id = parts[0].toLongOrNull()
+                    val stok = parts[1].toIntOrNull()
+                    if (id != null && stok != null) id to stok else null
+                } else null
+            }.toMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
+
+        if (previousStockMap.isEmpty()) return true
+
+        // 1. Apakah ada produk baru yang masuk ke daftar stok menipis?
+        val hasNewLowStockProduct = lowStockItems.any { it.id !in previousStockMap }
+        if (hasNewLowStockProduct) return true
+
+        // 2. Apakah ada produk menipis yang stoknya berkurang lagi?
+        val hasDecreasedStock = lowStockItems.any { item ->
+            val prevStok = previousStockMap[item.id]
+            prevStok != null && item.stok < prevStok
+        }
+        return hasDecreasedStock
     }
 
     fun checkAndNotifyLowStock(products: List<ProductEntity> = allProducts.value, force: Boolean = false) {
@@ -1332,13 +1374,21 @@ class TokoViewModel(application: Application) : AndroidViewModel(application) {
 
         val lowStockItems = products.filter { it.stok <= it.minimumStokAlert }
         if (lowStockItems.isEmpty()) {
+            notificationPrefs.resetSignature()
             NotificationHelper.cancelLowStockNotification(getApplication())
             return
         }
 
-        // Tanda tangan unik berdasarkan ID dan sisa stok untuk menghindari spam berulang tanpa perubahan
+        // Tanda tangan unik berdasarkan ID dan sisa stok untuk melacak riwayat notifikasi
         val currentSignature = lowStockItems.sortedBy { it.id }.joinToString(";") { "${it.id}:${it.stok}" }
-        if (!force && currentSignature == notificationPrefs.lastNotifiedSignature) {
+
+        // Suara notifikasi HANYA berbunyi satu kali saat ada informasi terbaru stok menipis
+        val isNewAlert = hasNewLowStockAlert(lowStockItems, notificationPrefs.lastNotifiedSignature)
+        if (!force && !isNewAlert) {
+            // Perbarui signature jika ada perubahan non-kritis (misal restock sebagian) tanpa membunyikan suara
+            if (currentSignature != notificationPrefs.lastNotifiedSignature) {
+                notificationPrefs.lastNotifiedSignature = currentSignature
+            }
             return
         }
 
